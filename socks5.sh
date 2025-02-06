@@ -11,49 +11,88 @@ export SUB_TOKEN=${SUB_TOKEN:-'sub'}
 HOSTNAME=$(hostname)
 USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
 
-# Check if the SOCKS5 proxy service is already installed
-SOCKS5_DIR="$HOME/domains/${USERNAME}.serv00.net/socks5"
-SOCKS5_BIN="$SOCKS5_DIR/socks5"
+# 配置工作目录
+[[ "$HOSTNAME" == "s1.ct8.pl" ]] && WORKDIR="$HOME/domains/${USERNAME}.ct8.pl/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.ct8.pl/public_html" || WORKDIR="$HOME/domains/${USERNAME}.serv00.net/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.serv00.net/public_html"
 
-if [ -f "$SOCKS5_BIN" ]; then
-    echo -e "\e[1;32mSocks5代理服务已安装，正在启动...\e[0m"
-    nohup "$SOCKS5_BIN" -p $PORT >/dev/null 2>&1 &
-else
-    echo -e "\e[1;33mSocks5代理服务未安装，开始安装...\e[0m"
-    
-    # 安装所需文件和依赖
-    mkdir -p "$SOCKS5_DIR"
-    
-    # 随机生成 Socks5 账号和密码
-    SOCKS5_USER=$(openssl rand -base64 6)
-    SOCKS5_PASS=$(openssl rand -base64 12)
-    
-    # 保存账号密码
-    echo -e "\e[1;32mSocks5账号: $SOCKS5_USER \nSocks5密码: $SOCKS5_PASS\e[0m"
-    
-    # 下载 Socks5 服务的二进制文件 (假设是某个现成的 Socks5 客户端)
-    curl -L -o "$SOCKS5_BIN" "https://github.com/your-repo/socks5/releases/download/latest/socks5-linux-amd64"
-    chmod +x "$SOCKS5_BIN"
+# 清理并创建工作目录
+rm -rf "$WORKDIR" && mkdir -p "$WORKDIR" "$FILE_PATH" && chmod 777 "$WORKDIR" "$FILE_PATH" >/dev/null 2>&1
 
-    # 检测端口是否已占用，若占用则申请新端口
-    check_port() {
-        local port=$1
-        if lsof -i:$port >/dev/null; then
-            return 1  # 端口已占用
-        else
-            return 0  # 端口可用
-        fi
-    }
+# 检查端口并自动申请
+check_socks5_port() {
+  port_list=$(devil port list)
+  tcp_ports=$(echo "$port_list" | grep -c "tcp")
+  udp_ports=$(echo "$port_list" | grep -c "udp")
 
-    # 如果端口不可用，申请新的端口
-    while ! check_port "$PORT"; do
-        echo -e "\e[1;91m端口 $PORT 被占用，正在申请新的端口...\e[0m"
-        PORT=$(shuf -i 10000-65535 -n 1)
-    done
+  if [[ $tcp_ports -lt 1 ]]; then
+      echo -e "\e[1;91m没有可用的TCP端口, 正在调整...\e[0m"
 
-    echo -e "\e[1;32m选择的可用端口: $PORT\e[0m"
+      if [[ $udp_ports -ge 3 ]]; then
+          udp_port_to_delete=$(echo "$port_list" | awk '/udp/ {print $1}' | head -n 1)
+          devil port del udp $udp_port_to_delete
+          echo -e "\e[1;32m已删除UDP端口: $udp_port_to_delete\e[0m"
+      fi
 
-    # 启动 Socks5 代理服务
-    nohup "$SOCKS5_BIN" -u "$SOCKS5_USER" -p "$SOCKS5_PASS" -l "$PORT" >/dev/null 2>&1 &
-    echo -e "\e[1;32mSocks5代理服务已启动，端口: $PORT\e[0m"
-fi
+      while true; do
+          tcp_port=$(shuf -i 10000-65535 -n 1)
+          result=$(devil port add tcp $tcp_port 2>&1)
+          if [[ $result == *"succesfully"* ]]; then
+              echo -e "\e[1;32m已添加TCP端口: $tcp_port"
+              break
+          else
+              echo -e "\e[1;33m端口 $tcp_port 不可用，尝试其他端口...\e[0m"
+          fi
+      done
+      export PORT=$tcp_port
+  else
+      tcp_ports=$(echo "$port_list" | awk '/tcp/ {print $1}')
+      tcp_port1=$(echo "$tcp_ports" | sed -n '1p')
+
+      echo -e "\e[1;35m当前TCP端口: $tcp_port1\e[0m"
+      export PORT=$tcp_port1
+  fi
+}
+
+# 检查是否已有 SOCKS5 文件
+check_socks5_installed() {
+  if [ -f "$HOME/socks5_installed.txt" ]; then
+    echo -e "\e[1;32mSOCKS5 已安装，启动服务...\e[0m"
+    nohup /usr/local/bin/socks5 -p $PORT -u $SOCKS5_USER -P $SOCKS5_PASSWORD >/dev/null 2>&1 &
+    echo -e "\e[1;35mSOCKS5 服务已启动，代理地址为：socks5://$SOCKS5_USER:$SOCKS5_PASSWORD@$HOST_IP:$PORT\e[0m"
+  else
+    echo -e "\e[1;91m未安装 SOCKS5，正在安装...\e[0m"
+    install_socks5
+  fi
+}
+
+# 安装 SOCKS5
+install_socks5() {
+  # 随机生成 SOCKS5 账号密码
+  SOCKS5_USER=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 8)
+  SOCKS5_PASSWORD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 12)
+  echo -e "\e[1;32m生成的 SOCKS5 账号: $SOCKS5_USER, 密码: $SOCKS5_PASSWORD\e[0m"
+  
+  # 下载并安装 SOCKS5 程序
+  wget -q https://github.com/rofl0r/socks5/releases/download/latest/socks5-linux-amd64.tar.gz -O /tmp/socks5.tar.gz
+  tar -zxf /tmp/socks5.tar.gz -C /usr/local/bin
+  rm -rf /tmp/socks5.tar.gz
+
+  # 标记安装
+  touch "$HOME/socks5_installed.txt"
+  
+  # 启动 SOCKS5 服务
+  nohup /usr/local/bin/socks5 -p $PORT -u $SOCKS5_USER -P $SOCKS5_PASSWORD >/dev/null 2>&1 &
+  
+  echo -e "\e[1;35mSOCKS5 服务已安装并启动，代理地址为：socks5://$SOCKS5_USER:$SOCKS5_PASSWORD@$HOST_IP:$PORT\e[0m"
+}
+
+# 主函数
+main() {
+  # 检查端口并调整
+  check_socks5_port
+
+  # 检查 SOCKS5 是否已安装，若没有则进行安装
+  check_socks5_installed
+}
+
+# 执行主函数
+main
