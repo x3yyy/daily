@@ -1,82 +1,59 @@
 #!/bin/bash
+export LC_ALL=C
+export UUID=${UUID:-'fc44fe6a-f083-4591-9c03-f8d61dc3907f'} 
+export NEZHA_SERVER=${NEZHA_SERVER:-''}      
+export NEZHA_PORT=${NEZHA_PORT:-'5555'}             
+export NEZHA_KEY=${NEZHA_KEY:-''}                
+export PORT=${PORT:-''} 
+export CHAT_ID=${CHAT_ID:-''} 
+export BOT_TOKEN=${BOT_TOKEN:-''} 
+export SUB_TOKEN=${SUB_TOKEN:-'sub'}
+HOSTNAME=$(hostname)
+USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
 
-# 1. 生成随机用户名和密码的函数
-generate_random_string() {
-    local chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890
-    local name=""
-    for i in {1..8}; do
-        name="$name${chars:RANDOM%${#chars}:1}"
-    done
-    echo "$name"
-}
+# Check if the SOCKS5 proxy service is already installed
+SOCKS5_DIR="$HOME/domains/${USERNAME}.serv00.net/socks5"
+SOCKS5_BIN="$SOCKS5_DIR/socks5"
 
-# 2. 获取可用的端口
-get_available_port() {
-    local port_list=$(devil port list)
-    local udp_ports=$(echo "$port_list" | grep -c "udp")
-    local tcp_ports=$(echo "$port_list" | grep -c "tcp")
+if [ -f "$SOCKS5_BIN" ]; then
+    echo -e "\e[1;32mSocks5代理服务已安装，正在启动...\e[0m"
+    nohup "$SOCKS5_BIN" -p $PORT >/dev/null 2>&1 &
+else
+    echo -e "\e[1;33mSocks5代理服务未安装，开始安装...\e[0m"
+    
+    # 安装所需文件和依赖
+    mkdir -p "$SOCKS5_DIR"
+    
+    # 随机生成 Socks5 账号和密码
+    SOCKS5_USER=$(openssl rand -base64 6)
+    SOCKS5_PASS=$(openssl rand -base64 12)
+    
+    # 保存账号密码
+    echo -e "\e[1;32mSocks5账号: $SOCKS5_USER \nSocks5密码: $SOCKS5_PASS\e[0m"
+    
+    # 下载 Socks5 服务的二进制文件 (假设是某个现成的 Socks5 客户端)
+    curl -L -o "$SOCKS5_BIN" "https://github.com/your-repo/socks5/releases/download/latest/socks5-linux-amd64"
+    chmod +x "$SOCKS5_BIN"
 
-    if [[ $udp_ports -lt 1 ]]; then
-        echo -e "\e[1;91m没有可用的UDP端口，正在调整...\e[0m"
-
-        if [[ $tcp_ports -ge 3 ]]; then
-            tcp_port_to_delete=$(echo "$port_list" | awk '/tcp/ {print $1}' | head -n 1)
-            devil port del tcp $tcp_port_to_delete
-            echo -e "\e[1;32m已删除TCP端口: $tcp_port_to_delete\e[0m"
+    # 检测端口是否已占用，若占用则申请新端口
+    check_port() {
+        local port=$1
+        if lsof -i:$port >/dev/null; then
+            return 1  # 端口已占用
+        else
+            return 0  # 端口可用
         fi
+    }
 
-        while true; do
-            udp_port=$(shuf -i 10000-65535 -n 1)
-            result=$(devil port add udp $udp_port 2>&1)
-            if [[ $result == *"succesfully"* ]]; then
-                echo -e "\e[1;32m已添加UDP端口: $udp_port"
-                echo "$udp_port"
-                break
-            else
-                echo -e "\e[1;33m端口 $udp_port 不可用，尝试其他端口...\e[0m"
-            fi
-        done
-    else
-        udp_ports=$(echo "$port_list" | awk '/udp/ {print $1}')
-        echo "$udp_ports" | sed -n '1p'
-    fi
-}
+    # 如果端口不可用，申请新的端口
+    while ! check_port "$PORT"; do
+        echo -e "\e[1;91m端口 $PORT 被占用，正在申请新的端口...\e[0m"
+        PORT=$(shuf -i 10000-65535 -n 1)
+    done
 
-# 3. 检查并安装 SOCKS5 代理
-check_socks5_installed() {
-    if pgrep -x "socks5_proxy" > /dev/null; then
-        echo -e "\e[1;32mSOCKS5代理已安装，正在重新启动...\e[0m"
-        pkill -f "socks5_proxy"
-        sleep 2
-        start_socks5_proxy
-    else
-        echo -e "\e[1;33m未检测到SOCKS5代理，正在安装...\e[0m"
-        install_socks5_proxy
-    fi
-}
+    echo -e "\e[1;32m选择的可用端口: $PORT\e[0m"
 
-# 4. 安装 SOCKS5 代理
-install_socks5_proxy() {
-    PORT=$(get_available_port)
-
-    # 安装并配置 SOCKS5 代理
-    devil install socks5_proxy --port $PORT --username $USERNAME --password $PASSWORD > /dev/null 2>&1
-    echo -e "\e[1;32mSOCKS5代理安装成功！\e[0m"
-    echo -e "\e[1;35m代理地址: socks5://$USERNAME:$PASSWORD@$(hostname):$PORT\e[0m"
-}
-
-# 5. 启动 SOCKS5 代理
-start_socks5_proxy() {
-    devil socks5 start --port $PORT --username $USERNAME --password $PASSWORD > /dev/null 2>&1 &
-    echo -e "\e[1;32mSOCKS5代理已启动！\e[0m"
-    echo -e "\e[1;35m代理地址: socks5://$USERNAME:$PASSWORD@$(hostname):$PORT\e[0m"
-}
-
-# 6. 主流程，集成在你的hy2脚本中
-USERNAME=$(generate_random_string)
-PASSWORD=$(generate_random_string)
-
-# 这里是你调用其他hy2代码的地方，加入 SOCKS5 代理的检查
-check_socks5_installed
-
-# 继续hy2的其他操作代码
+    # 启动 Socks5 代理服务
+    nohup "$SOCKS5_BIN" -u "$SOCKS5_USER" -p "$SOCKS5_PASS" -l "$PORT" >/dev/null 2>&1 &
+    echo -e "\e[1;32mSocks5代理服务已启动，端口: $PORT\e[0m"
+fi
