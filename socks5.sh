@@ -1,14 +1,22 @@
 #!/bin/bash
+export LC_ALL=C
+export UUID=${UUID:-'fc44fe6a-f083-4591-9c03-f8d61dc3907f'} 
+export NEZHA_SERVER=${NEZHA_SERVER:-''}      
+export NEZHA_PORT=${NEZHA_PORT:-'5555'}             
+export NEZHA_KEY=${NEZHA_KEY:-''}                
+export PORT=${PORT:-''} 
+export CHAT_ID=${CHAT_ID:-''} 
+export BOT_TOKEN=${BOT_TOKEN:-''} 
+export SUB_TOKEN=${SUB_TOKEN:-'sub'}
+HOSTNAME=$(hostname)
+USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
+[[ "$HOSTNAME" == "s1.ct8.pl" ]] && WORKDIR="$HOME/domains/${USERNAME}.ct8.pl/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.ct8.pl/public_html" || WORKDIR="$HOME/domains/${USERNAME}.serv00.net/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.serv00.net/public_html"
+rm -rf "$WORKDIR" && mkdir -p "$WORKDIR" "$FILE_PATH" && chmod 777 "$WORKDIR" "$FILE_PATH" >/dev/null 2>&1
+bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
 
-# 设置 SOCKS5 代理安装路径和配置文件路径
-SOCKS5_PATH="$HOME/domains/${USERNAME}.serv00.net/socks5"
-SOCKS5_PORT=${SOCKS5_PORT:-"1080"}
-SOCKS5_USER=$(generate_random_name)
-SOCKS5_PASS=$(generate_random_name)
-
-# 生成随机的用户名和密码
-generate_random_name() {
-    local chars=abcdefghijklmnopqrstuvwxyz1234567890
+# 1. 生成随机用户名和密码的函数
+generate_random_string() {
+    local chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890
     local name=""
     for i in {1..8}; do
         name="$name${chars:RANDOM%${#chars}:1}"
@@ -16,62 +24,73 @@ generate_random_name() {
     echo "$name"
 }
 
-# 检查是否已经安装 SOCKS5 代理服务
-check_socks5_installed() {
-    if [ -d "$SOCKS5_PATH" ]; then
-        echo -e "\e[1;32mSOCKS5 代理服务已安装，正在启动...\e[0m"
-        start_socks5_service
-    else
-        echo -e "\e[1;31mSOCKS5 代理服务未安装，正在安装...\e[0m"
-        install_socks5_service
-    fi
-}
+# 2. 获取可用的端口
+get_available_port() {
+    local port_list=$(devil port list)
+    local udp_ports=$(echo "$port_list" | grep -c "udp")
+    local tcp_ports=$(echo "$port_list" | grep -c "tcp")
 
-# 安装 SOCKS5 代理服务
-install_socks5_service() {
-    # 检查端口是否已占用，如果没有占用直接使用
-    check_port_and_apply
+    if [[ $udp_ports -lt 1 ]]; then
+        echo -e "\e[1;91m没有可用的UDP端口，正在调整...\e[0m"
 
-    # 在安装过程中需要的一些步骤，如下载和配置
-    mkdir -p "$SOCKS5_PATH"
-    # 假设是安装一些 SOCKS5 代理服务（此处以 Shadowsocks 为例）
-    # 安装 Shadowsocks 并配置
-    # ...
-    echo -e "安装并配置 SOCKS5 服务..."
-    echo -e "SOCKS5 服务已安装，用户名: $SOCKS5_USER，密码: $SOCKS5_PASS，端口: $SOCKS5_PORT"
+        if [[ $tcp_ports -ge 3 ]]; then
+            tcp_port_to_delete=$(echo "$port_list" | awk '/tcp/ {print $1}' | head -n 1)
+            devil port del tcp $tcp_port_to_delete
+            echo -e "\e[1;32m已删除TCP端口: $tcp_port_to_delete\e[0m"
+        fi
 
-    start_socks5_service
-}
-
-# 启动 SOCKS5 代理服务
-start_socks5_service() {
-    echo -e "\e[1;32m启动 SOCKS5 代理服务...\e[0m"
-    # 假设启动 Shadowsocks 服务，使用用户名、密码和端口
-    nohup ss-server -p "$SOCKS5_PORT" -k "$SOCKS5_PASS" -m aes-256-gcm &>/dev/null &
-    echo -e "\e[1;32mSOCKS5 代理服务已启动!\e[0m"
-    echo -e "\e[1;32m代理链接：socks5://$SOCKS5_USER:$SOCKS5_PASS@$(hostname -I | awk '{print $1}'):$SOCKS5_PORT\e[0m"
-}
-
-# 检查端口是否可用，若不可用则申请一个新的端口
-check_port_and_apply() {
-    # 检测是否有可用端口
-    result=$(devil port list | grep -w "$SOCKS5_PORT")
-    
-    if [[ -z "$result" ]]; then
-        echo -e "\e[1;32m端口 $SOCKS5_PORT 可用，直接使用此端口\e[0m"
-    else
-        echo -e "\e[1;33m端口 $SOCKS5_PORT 被占用，正在尝试其他端口...\e[0m"
-        # 端口被占用，申请一个新的端口
         while true; do
-            SOCKS5_PORT=$(shuf -i 10000-65535 -n 1)
-            result=$(devil port list | grep -w "$SOCKS5_PORT")
-            if [[ -z "$result" ]]; then
-                echo -e "\e[1;32m端口 $SOCKS5_PORT 可用，已成功申请\e[0m"
+            udp_port=$(shuf -i 10000-65535 -n 1)
+            result=$(devil port add udp $udp_port 2>&1)
+            if [[ $result == *"succesfully"* ]]; then
+                echo -e "\e[1;32m已添加UDP端口: $udp_port"
+                echo "$udp_port"
                 break
+            else
+                echo -e "\e[1;33m端口 $udp_port 不可用，尝试其他端口...\e[0m"
             fi
         done
+    else
+        udp_ports=$(echo "$port_list" | awk '/udp/ {print $1}')
+        echo "$udp_ports" | sed -n '1p'
     fi
 }
 
-# 调用函数检查 SOCKS5 代理服务是否已安装
+# 3. 检查并安装 SOCKS5 代理
+check_socks5_installed() {
+    if pgrep -x "socks5_proxy" > /dev/null; then
+        echo -e "\e[1;32mSOCKS5代理已安装，正在重新启动...\e[0m"
+        pkill -f "socks5_proxy"
+        sleep 2
+        start_socks5_proxy
+    else
+        echo -e "\e[1;33m未检测到SOCKS5代理，正在安装...\e[0m"
+        install_socks5_proxy
+    fi
+}
+
+# 4. 安装 SOCKS5 代理
+install_socks5_proxy() {
+    PORT=$(get_available_port)
+
+    # 安装并配置 SOCKS5 代理
+    devil install socks5_proxy --port $PORT --username $USERNAME --password $PASSWORD > /dev/null 2>&1
+    echo -e "\e[1;32mSOCKS5代理安装成功！\e[0m"
+    echo -e "\e[1;35m代理地址: socks5://$USERNAME:$PASSWORD@$(hostname):$PORT\e[0m"
+}
+
+# 5. 启动 SOCKS5 代理
+start_socks5_proxy() {
+    devil socks5 start --port $PORT --username $USERNAME --password $PASSWORD > /dev/null 2>&1 &
+    echo -e "\e[1;32mSOCKS5代理已启动！\e[0m"
+    echo -e "\e[1;35m代理地址: socks5://$USERNAME:$PASSWORD@$(hostname):$PORT\e[0m"
+}
+
+# 6. 主流程，集成在你的hy2脚本中
+USERNAME=$(generate_random_string)
+PASSWORD=$(generate_random_string)
+
+# 这里是你调用其他hy2代码的地方，加入 SOCKS5 代理的检查
 check_socks5_installed
+
+# 继续hy2的其他操作代码
