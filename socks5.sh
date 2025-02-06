@@ -29,7 +29,7 @@ check_socks5_installed() {
 
 # 安装 SOCKS5 代理服务
 install_socks5_service() {
-    # 检查端口是否被占用，如果端口被占用则自动申请一个新的端口
+    # 检查端口是否已占用，如果没有占用直接使用
     check_port_and_apply
 
     # 在安装过程中需要的一些步骤，如下载和配置
@@ -52,18 +52,25 @@ start_socks5_service() {
     echo -e "\e[1;32m代理链接：socks5://$SOCKS5_USER:$SOCKS5_PASS@$(hostname -I | awk '{print $1}'):$SOCKS5_PORT\e[0m"
 }
 
-# 检查端口是否被占用并申请新的端口
+# 检查端口是否可用，若不可用则申请一个新的端口
 check_port_and_apply() {
-    while true; do
-        result=$(devil port add tcp "$SOCKS5_PORT" 2>&1)
-        if [[ "$result" == *"succesfully"* ]]; then
-            echo -e "\e[1;32m端口 $SOCKS5_PORT 可用，已成功申请\e[0m"
-            break
-        else
-            echo -e "\e[1;33m端口 $SOCKS5_PORT 被占用，正在尝试新的端口...\e[0m"
+    # 检测是否有可用端口
+    result=$(devil port list | grep -w "$SOCKS5_PORT")
+    
+    if [[ -z "$result" ]]; then
+        echo -e "\e[1;32m端口 $SOCKS5_PORT 可用，直接使用此端口\e[0m"
+    else
+        echo -e "\e[1;33m端口 $SOCKS5_PORT 被占用，正在尝试其他端口...\e[0m"
+        # 端口被占用，申请一个新的端口
+        while true; do
             SOCKS5_PORT=$(shuf -i 10000-65535 -n 1)
-        fi
-    done
+            result=$(devil port list | grep -w "$SOCKS5_PORT")
+            if [[ -z "$result" ]]; then
+                echo -e "\e[1;32m端口 $SOCKS5_PORT 可用，已成功申请\e[0m"
+                break
+            fi
+        done
+    fi
 }
 
 # 调用函数检查 SOCKS5 代理服务是否已安装
