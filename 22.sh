@@ -135,7 +135,6 @@ check_binexec_and_port () {
 }
 check_binexec_and_port
 
-clear
 echo -e "\e[1;35m正在安装中,请稍等...\e[0m"
 ARCH=$(uname -m) && DOWNLOAD_DIR="." && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
 if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
