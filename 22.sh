@@ -337,6 +337,7 @@ cat << EOF
   skip-cert-verify: true
   fast-open: true
 EOF
+echo -e "\e[1;35m代理地址: socks5://$USERNAME:$PASSWORD@$(hostname):$PORT\e[0m"
 echo -e "\n\e[1;35m节点订阅链接: https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log  适用于V2ranN/Nekobox/Karing/小火箭/sterisand/Loon 等\033[0m\n"
 rm -rf config.yaml fake_useragent_0.2.0.json
 install_keepalive
