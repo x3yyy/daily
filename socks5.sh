@@ -15,9 +15,9 @@ USER=$(whoami)
 WORKDIR="/home/${USER}/.nezha-agent"
 FILE_PATH="/home/${USER}/.s5"
 
-# 生成随机字符串函数（替换tr命令方式）
+# 生成随机字符串函数（不使用tr）
 generate_random_string() {
-    # 使用date和md5方式生成随机字符串，避免非法字符问题
+    # 使用当前时间戳生成随机字符
     echo $(date +%s | md5sum | head -c 12)
 }
 
@@ -42,6 +42,15 @@ get_available_port() {
             ((base_port++))  # 端口占用，增加端口号
         fi
     done
+}
+
+# 检查是否已经有运行中的 SOCKS5 代理进程
+check_socks5_running() {
+    if pgrep -x "s5" > /dev/null; then
+        return 0  # SOCKS5 已经在运行
+    else
+        return 1  # SOCKS5 未运行
+    fi
 }
 
 # 配置 SOCKS5
@@ -130,9 +139,13 @@ install_socks5(){
 
 ########################梦开始的地方###########################
 
-read -p "是否安装 socks5 (Y/N 回车N): " socks5choice
-socks5choice=${socks5choice^^} # 转换为大写
-if [ "$socks5choice" == "Y" ]; then
+# 检查是否已经有运行中的 SOCKS5 代理
+check_socks5_running
+if [ $? -eq 0 ]; then
+  echo "SOCKS5 代理已在运行，无需重新安装。"
+  pgrep -x "s5" > /dev/null && echo "代理正在运行..."
+else
+  echo "未检测到 SOCKS5 代理，开始安装..."
   # 检查socks5目录是否存在
   if [ -d "$FILE_PATH" ]; then
     install_socks5
@@ -142,8 +155,6 @@ if [ "$socks5choice" == "Y" ]; then
     mkdir -p "$FILE_PATH"
     install_socks5
   fi
-else
-  echo "不安装 socks5"
 fi
 
 echo "脚本执行完成。"
