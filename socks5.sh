@@ -13,7 +13,7 @@ while lsof -i:$port >/dev/null; do
   port=$((port + 1))
 done
 
-# 安装 dante-server
+# 安装 dante-server (在 FreeBSD 上使用 pkg)
 if command -v pkg >/dev/null; then
     sudo pkg install -y dante
 else
@@ -49,10 +49,7 @@ sudo chmod 600 /usr/local/etc/dante.passwd
 sudo service danted start
 
 # 获取主机 IP 地址
-ip_address=$(hostname -I | awk '{print $1}')
-if [ -z "$ip_address" ]; then
-    ip_address=$(ifconfig | grep inet | awk '{print $2}' | head -n 1)
-fi
+ip_address=$(ifconfig | grep inet | awk '{print $2}' | head -n 1)
 
 # 输出代理链接
 echo "SOCKS5 代理已成功设置！"
