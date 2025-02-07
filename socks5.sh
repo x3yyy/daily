@@ -15,9 +15,10 @@ USER=$(whoami)
 WORKDIR="/home/${USER}/.nezha-agent"
 FILE_PATH="/home/${USER}/.s5"
 
-# 生成随机字符串函数
+# 生成随机字符串函数（替换tr命令方式）
 generate_random_string() {
-    < /dev/urandom tr -dc 'A-Za-z0-9' | head -c 12
+    # 使用date和md5方式生成随机字符串，避免非法字符问题
+    echo $(date +%s | md5sum | head -c 12)
 }
 
 # 检查端口是否被占用
