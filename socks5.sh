@@ -1,57 +1,52 @@
 #!/bin/bash
 
-# 检查并安装必要的工具
-if ! command -v dante-server &> /dev/null; then
-    echo "dante-server 没有安装，开始安装..."
-    apt-get update && apt-get install -y dante-server
-fi
+# 生成随机用户名和密码
+username=$(openssl rand -base64 8)
+password=$(openssl rand -base64 16)
 
-# 定义检查端口是否可用的函数
-check_port() {
-    netstat -tuln | grep ":$1" > /dev/null
-    return $?
-}
+# 设置端口
+port=1080
 
-# 申请一个随机端口
-PORT=1080
-while check_port $PORT; do
-    PORT=$((RANDOM + 1024))  # 生成一个1024以上的随机端口
+# 检查端口是否已被占用
+while lsof -i:$port >/dev/null; do
+  echo "端口 $port 被占用，正在尝试其他端口..."
+  port=$((port + 1))
 done
 
-# 随机生成账号和密码
-USER=$(openssl rand -base64 6)
-PASS=$(openssl rand -base64 6)
+# 安装 dante-server
+apt-get update
+apt-get install -y dante-server
 
-# 输出账号密码和端口
-echo "生成的 SOCKS5 代理连接信息："
-echo "端口：$PORT"
-echo "账号：$USER"
-echo "密码：$PASS"
-
-# 创建配置文件
-CONF_FILE="/etc/danted.conf"
-cat << EOF > $CONF_FILE
+# 创建 dante 配置文件
+cat <<EOF > /etc/danted.conf
 logoutput: /var/log/danted.log
-internal: eth0 port = $PORT
+internal: 0.0.0.0 port=$port
 external: eth0
-
-method: username none
+method: username # 使用用户名和密码
 user.notprivileged: nobody
-user.libwrap: nobody
+clientmethod: none
 
+# 允许所有连接 (可以根据需求调整)
 client pass {
     from: 0.0.0.0/0 to: 0.0.0.0/0
-    log: error
+    log: connect error
 }
 
-clientmethod: username none
-
-socksmethod: username
+# 认证方式配置
+user.privileged: root
+user.unprivileged: nobody
 EOF
 
-# 启动 Socks5 代理服务
+# 创建代理认证用户名和密码文件
+echo "$username $password" > /etc/dante.passwd
+chmod 600 /etc/dante.passwd
+
+# 启动 dante 服务
 systemctl restart danted
 
-# 输出 Socks5 代理服务信息
-echo "Socks5 代理服务已启动，连接信息："
-echo "socks5://$USER:$PASS@$(hostname):$PORT"
+# 输出代理链接
+echo "SOCKS5 代理已成功设置！"
+echo "代理地址: $(hostname -I | awk '{print $1}')"
+echo "端口: $port"
+echo "用户名: $username"
+echo "密码: $password"
