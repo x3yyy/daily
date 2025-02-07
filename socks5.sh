@@ -14,14 +14,18 @@ while lsof -i:$port >/dev/null; do
 done
 
 # 安装 dante-server
-apt-get update
-apt-get install -y dante-server
+if command -v pkg >/dev/null; then
+    sudo pkg install -y dante
+else
+    echo "无法找到 pkg 包管理器，请手动安装 dante-server。"
+    exit 1
+fi
 
 # 创建 dante 配置文件
-cat <<EOF > /etc/danted.conf
+sudo tee /usr/local/etc/danted.conf > /dev/null <<EOF
 logoutput: /var/log/danted.log
 internal: 0.0.0.0 port=$port
-external: eth0
+external: em0  # 请根据实际网络接口修改
 method: username # 使用用户名和密码
 user.notprivileged: nobody
 clientmethod: none
@@ -38,15 +42,21 @@ user.unprivileged: nobody
 EOF
 
 # 创建代理认证用户名和密码文件
-echo "$username $password" > /etc/dante.passwd
-chmod 600 /etc/dante.passwd
+echo "$username $password" | sudo tee /usr/local/etc/dante.passwd > /dev/null
+sudo chmod 600 /usr/local/etc/dante.passwd
 
 # 启动 dante 服务
-systemctl restart danted
+sudo service danted start
+
+# 获取主机 IP 地址
+ip_address=$(hostname -I | awk '{print $1}')
+if [ -z "$ip_address" ]; then
+    ip_address=$(ifconfig | grep inet | awk '{print $2}' | head -n 1)
+fi
 
 # 输出代理链接
 echo "SOCKS5 代理已成功设置！"
-echo "代理地址: $(hostname -I | awk '{print $1}')"
+echo "代理地址: $ip_address"
 echo "端口: $port"
 echo "用户名: $username"
 echo "密码: $password"
