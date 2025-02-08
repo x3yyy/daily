@@ -1,348 +1,290 @@
 #!/bin/bash
-export LC_ALL=C
-export UUID=${UUID:-'fc44fe6a-f083-4591-9c03-f8d61dc3907f'} 
-export NEZHA_SERVER=${NEZHA_SERVER:-''}      
-export NEZHA_PORT=${NEZHA_PORT:-'5555'}             
-export NEZHA_KEY=${NEZHA_KEY:-''}                
-export PORT=${PORT:-''} 
-export CHAT_ID=${CHAT_ID:-''} 
-export BOT_TOKEN=${BOT_TOKEN:-''} 
-export SUB_TOKEN=${SUB_TOKEN:-'sub'}
-HOSTNAME=$(hostname)
-USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
-[[ "$HOSTNAME" == "s1.ct8.pl" ]] && WORKDIR="$HOME/domains/${USERNAME}.ct8.pl/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.ct8.pl/public_html" || WORKDIR="$HOME/domains/${USERNAME}.serv00.net/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.serv00.net/public_html"
-rm -rf "$WORKDIR" && mkdir -p "$WORKDIR" "$FILE_PATH" && chmod 777 "$WORKDIR" "$FILE_PATH" >/dev/null 2>&1
-bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
 
-# 1. 生成随机用户名和密码的函数
-generate_random_string() {
-    local chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890
-    local name=""
-    for i in {1..8}; do
-        name="$name${chars:RANDOM%${#chars}:1}"
-    done
-    echo "$name"
-}
+# 介绍信息
+echo -e "\e[32m
+  ____   ___   ____ _  ______ ____  
+ / ___| / _ \ / ___| |/ / ___| ___|  
+ \___ \| | | | |   | ' /\___ \___ \ 
+  ___) | |_| | |___| . \ ___) |__) |           不要直连
+ |____/ \___/ \____|_|\_\____/____/            没有售后   
+ 缝合怪：cmliu 原作者们：RealNeoMan、k0baya、eooce
+\e[0m"
 
-# 2. 获取可用的端口
-get_available_port() {
-    local port_list=$(devil port list)
-    local udp_ports=$(echo "$port_list" | grep -c "udp")
-    local tcp_ports=$(echo "$port_list" | grep -c "tcp")
+# 获取当前用户名
+USER=$(whoami)
+WORKDIR="/home/${USER}/.nezha-agent"
+FILE_PATH="/home/${USER}/.s5"
 
-    if [[ $udp_ports -lt 1 ]]; then
-        echo -e "\e[1;91m没有可用的UDP端口，正在调整...\e[0m"
+###################################################
 
-        if [[ $tcp_ports -ge 3 ]]; then
-            tcp_port_to_delete=$(echo "$port_list" | awk '/tcp/ {print $1}' | head -n 1)
-            devil port del tcp $tcp_port_to_delete
-            echo -e "\e[1;32m已删除TCP端口: $tcp_port_to_delete\e[0m"
-        fi
+socks5_config(){
+# 提示用户输入socks5端口号
+read -p "请输入socks5端口号: " SOCKS5_PORT
 
-        while true; do
-            udp_port=$(shuf -i 10000-65535 -n 1)
-            result=$(devil port add udp $udp_port 2>&1)
-            if [[ $result == *"succesfully"* ]]; then
-                echo -e "\e[1;32m已添加UDP端口: $udp_port"
-                echo "$udp_port"
-                break
-            else
-                echo -e "\e[1;33m端口 $udp_port 不可用，尝试其他端口...\e[0m"
-            fi
-        done
-    else
-        udp_ports=$(echo "$port_list" | awk '/udp/ {print $1}')
-        echo "$udp_ports" | sed -n '1p'
-    fi
-}
+# 提示用户输入用户名和密码
+read -p "请输入socks5用户名: " SOCKS5_USER
 
-# 3. 检查并安装 SOCKS5 代理
-check_socks5_installed() {
-    if pgrep -x "socks5_proxy" > /dev/null; then
-        echo -e "\e[1;32mSOCKS5代理已安装，正在重新启动...\e[0m"
-        pkill -f "socks5_proxy"
-        sleep 2
-        start_socks5_proxy
-    else
-        echo -e "\e[1;33m未检测到SOCKS5代理，正在安装...\e[0m"
-        install_socks5_proxy
-    fi
-}
-
-# 4. 安装 SOCKS5 代理
-install_socks5_proxy() {
-    PORT=$(get_available_port)
-
-    # 安装并配置 SOCKS5 代理
-    devil install socks5_proxy --port $PORT --username $USERNAME --password $PASSWORD > /dev/null 2>&1
-    echo -e "\e[1;32mSOCKS5代理安装成功！\e[0m"
-    echo -e "\e[1;35m代理地址: socks5://$USERNAME:$PASSWORD@$(hostname):$PORT\e[0m"
-}
-
-# 5. 启动 SOCKS5 代理
-start_socks5_proxy() {
-    devil socks5 start --port $PORT --username $USERNAME --password $PASSWORD > /dev/null 2>&1 &
-    echo -e "\e[1;32mSOCKS5代理已启动！\e[0m"
-    echo -e "\e[1;35m代理地址: socks5://$USERNAME:$PASSWORD@$(hostname):$PORT\e[0m"
-}
-
-# 6. 主流程，集成在你的hy2脚本中
-USERNAME=$(generate_random_string)
-PASSWORD=$(generate_random_string)
-
-# 这里是你调用其他hy2代码的地方，加入 SOCKS5 代理的检查
-check_socks5_installed
-
-# 继续hy2的其他操作代码
-
-check_binexec_and_port () {
-  port_list=$(devil port list)
-  tcp_ports=$(echo "$port_list" | grep -c "tcp")
-  udp_ports=$(echo "$port_list" | grep -c "udp")
-
-  if [[ $udp_ports -lt 1 ]]; then
-      echo -e "\e[1;91m没有可用的UDP端口,正在调整...\e[0m"
-
-      if [[ $tcp_ports -ge 3 ]]; then
-          tcp_port_to_delete=$(echo "$port_list" | awk '/tcp/ {print $1}' | head -n 1)
-          devil port del tcp $tcp_port_to_delete
-          echo -e "\e[1;32m已删除TCP端口: $tcp_port_to_delete\e[0m"
-      fi
-
-      while true; do
-          udp_port=$(shuf -i 10000-65535 -n 1)
-          result=$(devil port add udp $udp_port 2>&1)
-          if [[ $result == *"succesfully"* ]]; then
-              echo -e "\e[1;32m已添加UDP端口: $udp_port"
-              udp_port1=$udp_port
-              break
-          else
-              echo -e "\e[1;33m端口 $udp_port 不可用，尝试其他端口...\e[0m"
-          fi
-      done
-
-      echo -e "\e[1;32m端口已调整完成, 将断开SSH连接, 请重新连接SSH并重新执行脚本\e[0m"
-      devil binexec on >/dev/null 2>&1
-      kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
+while true; do
+  read -p "请输入socks5密码（不能包含@和:）：" SOCKS5_PASS
+  echo
+  if [[ "$SOCKS5_PASS" == *"@"* || "$SOCKS5_PASS" == *":"* ]]; then
+    echo "密码中不能包含@和:符号，请重新输入。"
   else
-      udp_ports=$(echo "$port_list" | awk '/udp/ {print $1}')
-      udp_port1=$(echo "$udp_ports" | sed -n '1p')
+    break
+  fi
+done
 
-      echo -e "\e[1;35m当前UDP端口: $udp_port1\e[0m"
+# config.js文件
+  cat > ${FILE_PATH}/config.json << EOF
+{
+  "log": {
+    "access": "/dev/null",
+    "error": "/dev/null",
+    "loglevel": "none"
+  },
+  "inbounds": [
+    {
+      "port": "$SOCKS5_PORT",
+      "protocol": "socks",
+      "tag": "socks",
+      "settings": {
+        "auth": "password",
+        "udp": false,
+        "ip": "0.0.0.0",
+        "userLevel": 0,
+        "accounts": [
+          {
+            "user": "$SOCKS5_USER",
+            "pass": "$SOCKS5_PASS"
+          }
+        ]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "direct",
+      "protocol": "freedom"
+    }
+  ]
+}
+EOF
+}
+
+install_socks5(){
+  socks5_config
+  if [ ! -e "${FILE_PATH}/s5" ]; then
+    curl -L -sS -o "${FILE_PATH}/s5" "https://github.com/eooce/test/releases/download/freebsd/web"
+  else
+    read -p "socks5 程序已存在，是否重新下载覆盖？(Y/N 回车N)" downsocks5
+    downsocks5=${downsocks5^^} # 转换为大写
+    if [ "$downsocks5" == "Y" ]; then
+      if pgrep s5 > /dev/null; then
+        pkill s5
+        echo "socks5 进程已被终止"
+      fi
+      curl -L -sS -o "${FILE_PATH}/s5" "https://github.com/eooce/test/releases/download/freebsd/web"
+    else
+      echo "使用已存在的 socks5 程序"
+    fi
   fi
 
-  export PORT=$udp_port1
-}
-check_binexec_and_port
+  if [ -e "${FILE_PATH}/s5" ]; then
+    chmod 777 "${FILE_PATH}/s5"
+    nohup ${FILE_PATH}/s5 -c ${FILE_PATH}/config.json >/dev/null 2>&1 &
+          sleep 2
+    pgrep -x "s5" > /dev/null && echo -e "\e[1;32ms5 is running\e[0m" || { echo -e "\e[1;35ms5 is not running, restarting...\e[0m"; pkill -x "s5" && nohup "${FILE_PATH}/s5" -c ${FILE_PATH}/config.json >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32ms5 restarted\e[0m"; }
+    CURL_OUTPUT=$(curl -s 4.ipw.cn --socks5 $SOCKS5_USER:$SOCKS5_PASS@localhost:$SOCKS5_PORT)
+    if [[ $CURL_OUTPUT =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      echo "代理创建成功，返回的IP是: $CURL_OUTPUT"
+      SERV_DOMAIN=$CURL_OUTPUT
+      # 查找并列出包含用户名的文件夹
+      found_folders=$(find "/home/${USER}/domains" -type d -name "*${USER,,}*")
+      if [ -n "$found_folders" ]; then
+          if echo "$found_folders" | grep -q "serv00.net"; then
+              #echo "找到包含 'serv00.net' 的文件夹。"
+              SERV_DOMAIN="${USER,,}.serv00.net"
+          elif echo "$found_folders" | grep -q "ct8.pl"; then
+              #echo "未找到包含 'ct8.pl' 的文件夹。"
+              SERV_DOMAIN="${USER,,}.ct8.pl"
+          fi
+      fi
 
-echo -e "\e[1;35m正在安装中,请稍等...\e[0m"
-ARCH=$(uname -m) && DOWNLOAD_DIR="." && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
-if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
-    FILE_INFO=("https://download.hysteria.network/app/latest/hysteria-freebsd-arm64 web" "https://github.com/eooce/test/releases/download/ARM/swith npm")
-elif [ "$ARCH" == "amd64" ] || [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "x86" ]; then
-    FILE_INFO=("https://download.hysteria.network/app/latest/hysteria-freebsd-amd64 web" "https://github.com/eooce/test/releases/download/freebsd/npm npm")
-else
-    echo "Unsupported architecture: $ARCH"
-    exit 1
-fi
-declare -A FILE_MAP
-generate_random_name() {
-    local chars=abcdefghijklmnopqrstuvwxyz1234567890
-    local name=""
-    for i in {1..6}; do
-        name="$name${chars:RANDOM%${#chars}:1}"
-    done
-    echo "$name"
-}
-download_file() {
-    local URL=$1
-    local NEW_FILENAME=$2
-
-    if command -v curl >/dev/null 2>&1; then
-        curl -L -sS -o "$NEW_FILENAME" "$URL"
-        echo -e "\e[1;32mDownloaded $NEW_FILENAME by curl\e[0m"
-    elif command -v wget >/dev/null 2>&1; then
-        wget -q -O "$NEW_FILENAME" "$URL"
-        echo -e "\e[1;32mDownloaded $NEW_FILENAME by wget\e[0m"
+      echo "socks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}"
     else
-        echo -e "\e[1;33mNeither curl nor wget is available for downloading\e[0m"
+      echo "代理创建失败，请检查自己输入的内容。"
+    fi
+  fi
+}
+
+download_agent() {
+    echo "请选择 nezha-agent 被控版本："
+    echo "1. release 最新版本"
+    echo "2. v0.20.5 兼容版本"
+    read -p "请选择(回车使用最新版本)：" nezhaAgentVersion
+    nezhaAgentVersion=${nezhaAgentVersion:-1}
+
+    # 根据用户选择设置下载链接
+    if [ "$nezhaAgentVersion" = "1" ]; then
+        DOWNLOAD_LINK="https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_freebsd_amd64.zip"
+    elif [ "$nezhaAgentVersion" = "2" ]; then
+        DOWNLOAD_LINK="https://github.com/nezhahq/agent/releases/download/v0.20.5/nezha-agent_freebsd_amd64.zip"
+    else
+        echo "输入无效,将使用最新版本"
+        DOWNLOAD_LINK="https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_freebsd_amd64.zip"
+    fi
+    # 使用wget下载,如果下载失败则执行以下操作
+    if ! wget -qO "$ZIP_FILE" "$DOWNLOAD_LINK"; then
+        echo '错误: 下载失败! 请检查您的网络连接或稍后重试。'
+        return 1
+    fi
+    return 0
+}
+
+decompression() {
+    unzip "$1" -d "$TMP_DIRECTORY"
+    EXIT_CODE=$?
+    if [ ${EXIT_CODE} -ne 0 ]; then
+        rm -r "$TMP_DIRECTORY"
+        echo "removed: $TMP_DIRECTORY"
         exit 1
     fi
 }
-for entry in "${FILE_INFO[@]}"; do
-    URL=$(echo "$entry" | cut -d ' ' -f 1)
-    RANDOM_NAME=$(generate_random_name)
-    NEW_FILENAME="$DOWNLOAD_DIR/$RANDOM_NAME"
-    
-    download_file "$URL" "$NEW_FILENAME"
-    
-    chmod +x "$NEW_FILENAME"
-    FILE_MAP[$(echo "$entry" | cut -d ' ' -f 2)]="$NEW_FILENAME"
-done
-wait
 
-# Generate cert
-openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout "$WORKDIR/server.key" -out "$WORKDIR/server.crt" -subj "/CN=bing.com" -days 36500
+install_agent() {
+    install -m 755 ${TMP_DIRECTORY}/nezha-agent ${WORKDIR}/nezha-agent
+}
 
-get_ip() {
-  IP_LIST=($(devil vhost list | awk '/^[0-9]+/ {print $1}'))
-  API_URL="https://status.eooce.com/api"
-  IP=""
-  THIRD_IP=${IP_LIST[2]}
-  RESPONSE=$(curl -s --max-time 2 "${API_URL}/${THIRD_IP}")
-  if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
-      IP=$THIRD_IP
+generate_run_agent(){
+    echo "关于接下来需要输入的三个变量，请注意："
+    echo "Dashboard 站点地址可以写 IP 也可以写域名（域名不可套 CDN）;但是请不要加上 http:// 或者 https:// 等前缀，直接写 IP 或者域名即可；"
+    echo "面板 RPC 端口为你的 Dashboard 安装时设置的用于 Agent 接入的 RPC 端口（默认 5555）；"
+    echo "Agent 密钥需要先在管理面板上添加 Agent 获取。"
+    printf "请输入 Dashboard 站点地址："
+    read -r NZ_DASHBOARD_SERVER
+    printf "请输入面板 RPC 端口："
+    read -r NZ_DASHBOARD_PORT
+    printf "请输入 Agent 密钥: "
+    read -r NZ_DASHBOARD_PASSWORD
+    printf "是否启用针对 gRPC 端口的 SSL/TLS加密 (--tls)，需要请按 [Y]，默认是不需要，不理解的用户可回车跳过: "
+    read -r NZ_GRPC_PROXY
+    echo "${NZ_GRPC_PROXY}" | grep -qiw 'Y' && ARGS='--tls'
+
+    if [ -z "${NZ_DASHBOARD_SERVER}" ] || [ -z "${NZ_DASHBOARD_PASSWORD}" ]; then
+        echo "error! 所有选项都不能为空"
+        return 1
+        rm -rf ${WORKDIR}
+        exit
+    fi
+
+    cat > ${WORKDIR}/start.sh << EOF
+#!/bin/bash
+pgrep -f 'nezha-agent' | xargs -r kill
+cd ${WORKDIR}
+TMPDIR="${WORKDIR}" exec ${WORKDIR}/nezha-agent -s ${NZ_DASHBOARD_SERVER}:${NZ_DASHBOARD_PORT} -p ${NZ_DASHBOARD_PASSWORD} --report-delay 4 --disable-auto-update --disable-force-update ${ARGS} >/dev/null 2>&1
+EOF
+    chmod +x ${WORKDIR}/start.sh
+}
+
+run_agent(){
+    nohup ${WORKDIR}/start.sh >/dev/null 2>&1 &
+    printf "nezha-agent已经准备就绪，请按下回车键启动\n"
+    read
+    printf "正在启动nezha-agent，请耐心等待...\n"
+    sleep 3
+    if pgrep -f "nezha-agent -s" > /dev/null; then
+        echo "nezha-agent 已启动！"
+        echo "如果面板处未上线，请检查参数是否填写正确，并停止 agent 进程，删除已安装的 agent 后重新安装！"
+        echo "停止 agent 进程的命令：pgrep -f 'nezha-agent' | xargs -r kill"
+        echo "删除已安装的 agent 的命令：rm -rf ~/.nezha-agent"
+    else
+        rm -rf "${WORKDIR}"
+        echo "nezha-agent 启动失败，请检查参数填写是否正确，并重新安装！"
+    fi
+}
+
+install_nezha_agent(){
+  mkdir -p ${WORKDIR}
+  cd ${WORKDIR}
+  TMP_DIRECTORY="$(mktemp -d)"
+  ZIP_FILE="${TMP_DIRECTORY}/nezha-agent_freebsd_amd64.zip"
+
+  # 如果 start.sh 文件不存在，则生成运行代理的脚本
+  if [ ! -e "${WORKDIR}/start.sh" ]; then
+    generate_run_agent
   else
-      FIRST_IP=${IP_LIST[0]}
-      RESPONSE=$(curl -s --max-time 2 "${API_URL}/${FIRST_IP}")
-      
-      if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
-          IP=$FIRST_IP
-      else
-          IP=${IP_LIST[1]}
+    read -p "nezha-agent 配置信息已存在，是否重新配置？(Y/N 回车N)" nezhaagentyn
+    nezhaagentyn=${nezhaagentyn^^} # 转换为大写
+    if [ "$nezhaagentyn" == "Y" ]; then
+      generate_run_agent
+    fi
+  fi
+
+  # 如果 nezha-agent 文件不存在，则下载并解压代理文件，然后进行安装
+  if [ ! -e "${WORKDIR}/nezha-agent" ]; then
+    download_agent
+    decompression "${ZIP_FILE}"
+    install_agent
+  else
+    read -p "nezha-agent 文件已存在，是否重新下载最新版本？(Y/N 回车N)" nezhaagentd
+    nezhaagentd=${nezhaagentd^^} # 转换为大写
+    if [ "$nezhaagentd" == "Y" ]; then
+      rm -rf "${ZIP_FILE}"
+      if pgrep nezha-agent > /dev/null; then
+        pkill nezha-agent
+        echo "nezha-agent 进程已被终止"
       fi
-  fi
-echo "$IP"
-}
-
-echo -e "\e[1;32m获取可用IP中,请稍等...\e[0m"
-HOST_IP=$(get_ip)
-echo -e "\e[1;35m当前选择IP为: $HOST_IP 如安装完后节点不通可尝试重新安装\e[0m"
-
-cat << EOF > config.yaml
-listen: $HOST_IP:$PORT
-
-tls:
-  cert: "$WORKDIR/server.crt"
-  key: "$WORKDIR/server.key"
-
-auth:
-  type: password
-  password: "$UUID"
-
-fastOpen: true
-
-masquerade:
-  type: proxy
-  proxy:
-    url: https://bing.com
-    rewriteHost: true
-
-transport:
-  udp:
-    hopInterval: 30s
-EOF
-
-install_keepalive () {
-    echo -e "\n\e[1;35m正在安装保活服务中,请稍等......\e[0m"
-    keep_path="$HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs"
-    [ -d "$keep_path" ] || mkdir -p "$keep_path"
-    app_file_url="https://hy2.2go.us.kg/app.js"
-
-    if command -v curl &> /dev/null; then
-        curl -s -o "${keep_path}/app.js" "$app_file_url"
-    elif command -v wget &> /dev/null; then
-        wget -q -O "${keep_path}/app.js" "$app_file_url"
-    else
-        echo -e "\n\e[1;32m警告: 文件下载失败,请手动从https://hy2.2go.us.kg/app.js下载文件,并将文件上传到${keep_path}目录下\e[0m"
-    fi
-
-    cat > ${keep_path}/.env <<EOF
-UUID=${UUID}
-SUB_TOKEN=${SUB_TOKEN}
-TELEGRAM_CHAT_ID=${CHAT_ID}
-TELEGRAM_BOT_TOKEN=${BOT_TOKEN}
-NEZHA_SERVER=${NEZHA_SERVER}
-NEZHA_PORT=${NEZHA_PORT}
-NEZHA_KEY=${NEZHA_KEY}
-EOF
-    devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
-    devil www add keep.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
-    devil ssl www add $HOST_IP le le keep.${USERNAME}.serv00.net > /dev/null 2>&1
-    ln -fs /usr/local/bin/node18 ~/bin/node > /dev/null 2>&1
-    ln -fs /usr/local/bin/npm18 ~/bin/npm > /dev/null 2>&1
-    mkdir -p ~/.npm-global
-    npm config set prefix '~/.npm-global'
-    echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
-    rm -rf $HOME/.npmrc > /dev/null 2>&1
-    cd ${keep_path} && npm install dotenv axios --silent > /dev/null 2>&1
-    rm $HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
-    devil www options keep.${USERNAME}.serv00.net sslonly on > /dev/null 2>&1
-    if devil www restart keep.${USERNAME}.serv00.net 2>&1 | grep -q "succesfully"; then
-        echo -e "\e[1;32m\n全自动保活服务安装成功\n\e[0m"
-        echo -e "\e[1;32m========================================================\e[0m"
-        echo -e "\e[1;35m\n访问 https://keep.${USERNAME}.serv00.net/status 查看进程状态\n\e[0m"
-        echo -e "\e[1;33m访问 https://keep.${USERNAME}.serv00.net/start 调起保活程序\n\e[0m"
-        echo -e "\e[1;35m访问 https://keep.${USERNAME}.serv00.net/list 全部进程列表\n\e[0m"
-        echo -e "\e[1;35m访问 https://keep.${USERNAME}.serv00.net/stop 结束进程和保活\n\e[0m"
-        echo -e "\e[1;32m========================================================\e[0m"
-        echo -e "\e[1;33m如发现掉线访问https://keep.${USERNAME}.serv00.net/start唤醒,或者用https://console.cron-job.org在线访问网页自动唤醒\n\e[0m"
-        echo -e "\e[1;35m如果需要Telegram通知，请先在Telegram @Botfather 申请 Bot-Token，并带CHAT_ID和BOT_TOKEN环境变量运行\n\n\e[0m"
-        
-    else
-        echo -e "\e[1;91m全自动保活服务安装失败,请删除所有文件夹后重试\n\e[0m"
-    fi
-}
-
-run() {
-  if [ -e "$(basename ${FILE_MAP[npm]})" ]; then
-    tlsPorts=("443" "8443" "2096" "2087" "2083" "2053")
-    if [[ "${tlsPorts[*]}" =~ "${NEZHA_PORT}" ]]; then
-      NEZHA_TLS="--tls"
-    else
-      NEZHA_TLS=""
-    fi
-    if [ -n "$NEZHA_SERVER" ] && [ -n "$NEZHA_PORT" ] && [ -n "$NEZHA_KEY" ]; then
-      export TMPDIR=$(pwd)
-      nohup ./"$(basename ${FILE_MAP[npm]})" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 &
-      sleep 1
-      pgrep -x "$(basename ${FILE_MAP[npm]})" > /dev/null && echo -e "\e[1;32m$(basename ${FILE_MAP[npm]}) is running\e[0m" || { echo -e "\e[1;35m$(basename ${FILE_MAP[npm]}) is not running, restarting...\e[0m"; pkill -f "$(basename ${FILE_MAP[npm]})" && nohup ./"$(basename ${FILE_MAP[npm]})" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32m"$(basename ${FILE_MAP[npm]})" restarted\e[0m"; }
-    else
-      echo -e "\e[1;35mNEZHA variable is empty, skipping running\e[0m"
+      rm -rf "${WORKDIR}/nezha-agent"
+      download_agent
+      decompression "${ZIP_FILE}"
+      install_agent
     fi
   fi
 
-  if [ -e "$(basename ${FILE_MAP[web]})" ]; then
-    nohup ./"$(basename ${FILE_MAP[web]})" server config.yaml >/dev/null 2>&1 &
-    sleep 1
-    pgrep -x "$(basename ${FILE_MAP[web]})" > /dev/null && echo -e "\e[1;32m$(basename ${FILE_MAP[web]}) is running\e[0m" || { echo -e "\e[1;35m$(basename ${FILE_MAP[web]}) is not running, restarting...\e[0m"; pkill -f "$(basename ${FILE_MAP[web]})" && nohup ./"$(basename ${FILE_MAP[web]})" server config.yaml >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32m$(basename ${FILE_MAP[web]}) restarted\e[0m"; }
+  # 删除临时目录
+  rm -rf "${TMP_DIRECTORY}"
+
+  # 如果 start.sh 文件存在，则运行代理
+  if [ -e "${WORKDIR}/start.sh" ]; then
+      run_agent
   fi
-rm -rf "$(basename ${FILE_MAP[web]})" "$(basename ${FILE_MAP[npm]})"
+
 }
-run
 
-get_name() { if [ "$HOSTNAME" = "s1.ct8.pl" ]; then SERVER="CT8"; else SERVER=$(echo "$HOSTNAME" | cut -d '.' -f 1); fi; echo "$SERVER"; }
-NAME="$(get_name)-hysteria2"
+########################梦开始的地方###########################
 
-ISP=$(curl -s --max-time 2 https://speed.cloudflare.com/meta | awk -F\" '{print $26}' | sed -e 's/ /_/g' || echo "0")
+read -p "是否安装 socks5 (Y/N 回车N): " socks5choice
+socks5choice=${socks5choice^^} # 转换为大写
+if [ "$socks5choice" == "Y" ]; then
+  # 检查socks5目录是否存在
+  if [ -d "$FILE_PATH" ]; then
+    install_socks5
+  else
+    # 创建socks5目录
+    echo "正在创建 socks5 目录..."
+    mkdir -p "$FILE_PATH"
+    install_socks5
+  fi
+else
+  echo "不安装 socks5"
+fi
 
-echo -e "\n\e[1;32mHysteria2安装成功\033[0m\n"
-echo -e "\e[1;32m本机IP：$HOST_IP\033[0m\n"
-echo -e "\e[1;33mV2rayN 或 Nekobox、小火箭等直接导入,跳过证书验证需设置为true\033[0m\n"
-cat > ${FILE_PATH}/${SUB_TOKEN}_hy2.log <<EOF
-hysteria2://$UUID@$HOST_IP:$PORT/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-$NAME
-EOF
-cat ${FILE_PATH}/${SUB_TOKEN}_hy2.log
-echo -e "\n\e[1;35mClash: \033[0m"
-cat << EOF
-- name: $ISP
-  type: hysteria2
-  server: $HOST_IP
-  port: $PORT
-  password: $UUID
-  alpn:
-    - h3
-  sni: www.bing.com
-  skip-cert-verify: true
-  fast-open: true
-EOF
-echo -e "\e[1;35m代理地址: socks5://$USERNAME:$PASSWORD@$(hostname):$PORT\e[0m"
-echo -e "\n\e[1;35m节点订阅链接: https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log  适用于V2ranN/Nekobox/Karing/小火箭/sterisand/Loon 等\033[0m\n"
-rm -rf config.yaml fake_useragent_0.2.0.json
-install_keepalive
-echo -e "\e[1;35m老王serv00|CT8单协议hysteria2无交互一键安装脚本\e[0m"
-echo -e "\e[1;35m脚本地址：https://github.com/eooce/sing-box\e[0m"
-echo -e "\e[1;35m反馈论坛：https://bbs.vps8.me\e[0m"
-echo -e "\e[1;35mTG反馈群组：https://t.me/vps888\e[0m"
-echo -e "\e[1;35m转载请著名出处，请勿滥用\e[0m\n"
-echo -e "\e[1;32mRuning done!\033[0m\n"
+read -p "是否安装 nezha-agent (Y/N 回车N): " choice
+choice=${choice^^} # 转换为大写
+if [ "$choice" == "Y" ]; then
+  echo "正在安装 nezha-agent..."
+  install_nezha_agent
+else
+  echo "不安装 nezha-agent"
+fi
+
+read -p "是否添加 crontab 守护进程的计划任务(Y/N 回车N): " crontabgogogo
+crontabgogogo=${crontabgogogo^^} # 转换为大写
+if [ "$crontabgogogo" == "Y" ]; then
+  echo "添加 crontab 守护进程的计划任务"
+  curl -s https://raw.githubusercontent.com/cmliu/socks5-for-serv00/main/check_cron.sh | bash
+else
+  echo "不添加 crontab 计划任务"
+fi
+
+echo "脚本执行完成。致谢：RealNeoMan、k0baya、eooce"
