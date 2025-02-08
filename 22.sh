@@ -1,4 +1,4 @@
-#!/bin/bash
+m#!/bin/bash
 
 # 介绍信息
 echo -e "\e[32m
@@ -231,21 +231,17 @@ install_nezha_agent(){
 }
 
 ########################梦开始的地方###########################
+# 自动安装 socks5
+echo "正在检查 socks5 安装目录..."
 
-read -p "是否安装 socks5 (Y/N 回车N): " socks5choice
-socks5choice=${socks5choice^^} # 转换为大写
-if [ "$socks5choice" == "Y" ]; then
-  # 检查socks5目录是否存在
-  if [ -d "$FILE_PATH" ]; then
-    install_socks5
-  else
-    # 创建socks5目录
-    echo "正在创建 socks5 目录..."
-    mkdir -p "$FILE_PATH"
-    install_socks5
-  fi
+# 检查socks5目录是否存在
+if [ -d "$FILE_PATH" ]; then
+  install_socks5
 else
-  echo "不安装 socks5"
+  # 创建socks5目录
+  echo "正在创建 socks5 目录..."
+  mkdir -p "$FILE_PATH" || { echo "目录创建失败，权限不足或路径错误。"; exit 1; }
+  install_socks5
 fi
 
 read -p "是否安装 nezha-agent (Y/N 回车N): " choice
