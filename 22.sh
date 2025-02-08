@@ -1,4 +1,4 @@
-m#!/bin/bash
+#!/bin/bash
 
 # 介绍信息
 echo -e "\e[32m
