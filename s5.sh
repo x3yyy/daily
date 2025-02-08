@@ -12,7 +12,6 @@ echo -e "\e[32m
 
 # 获取当前用户名
 USER=$(whoami)
-WORKDIR="/home/${USER}/.nezha-agent"
 FILE_PATH="/home/${USER}/.s5"
 
 ###################################################
