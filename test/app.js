@@ -1,94 +1,96 @@
-// app.js - 保活服务
-
-const axios = require('axios');
-const dotenv = require('dotenv');
 const express = require('express');
-
-// 加载环境变量
-dotenv.config();
+const { exec } = require('child_process');
 
 const app = express();
-const port = 3000; // 服务端口
+const PORT = 3000; // 监听端口
 
-// 获取环境变量
-const { UUID, SUB_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_BOT_TOKEN, NEZHA_SERVER, NEZHA_PORT, NEZHA_KEY } = process.env;
+// 需要检查的进程（关键字）
+const targetProcesses = [
+    { keyword: '/home/chqlileoleeyu/.s5/s5 -c', command: '/home/chqlileoleeyu/.s5/s5 -c /home/chqlileoleeyu/.s5/config.json' },
+    { keyword: './nu66lf server', command: './nu66lf server config.yaml' }
+];
 
-// 简单的健康检查接口
+// 运行 shell 命令的封装函数
+function runCommand(cmd, callback) {
+    exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+            callback(stderr || error.message);
+        } else {
+            callback(stdout);
+        }
+    });
+}
+
+// 获取当前进程列表
+function getProcessList(callback) {
+    runCommand("ps aux", (output) => {
+        callback(output);
+    });
+}
+
+// 解析 `ps aux` 输出，查找特定进程
+function findProcesses(output) {
+    return output.split("\n").filter(line =>
+        targetProcesses.some(proc => line.includes(proc.keyword))
+    );
+}
+
+// `/status` 路由：检查目标进程状态
 app.get('/status', (req, res) => {
-    res.json({
-        status: 'Running',
-        uuid: UUID,
-        message: '保活服务正在运行中...'
+    getProcessList(output => {
+        const matchingProcesses = findProcesses(output);
+        if (matchingProcesses.length > 0) {
+            res.send(`<pre>${matchingProcesses.join("\n")}</pre>`);
+        } else {
+            res.send('没有找到目标进程。');
+        }
     });
 });
 
-// 保活启动接口
-app.get('/start', async (req, res) => {
-    try {
-        // 调用 Nezha 服务器启动保活
-        const response = await axios.post(`http://${NEZHA_SERVER}:${NEZHA_PORT}/api/start`, {
-            key: NEZHA_KEY
+// `/start` 路由：如果进程未运行，则启动它
+app.get('/start', (req, res) => {
+    getProcessList(output => {
+        let processesToStart = targetProcesses.filter(proc => !output.includes(proc.keyword));
+
+        if (processesToStart.length === 0) {
+            return res.send('所有进程都在运行。');
+        }
+
+        processesToStart.forEach(proc => {
+            runCommand(proc.command, (result) => {
+                console.log(`已启动进程: ${proc.command}`);
+            });
         });
-        res.json({
-            status: 'Started',
-            message: '保活服务已启动。',
-            response: response.data
-        });
-    } catch (error) {
-        console.error('保活启动失败:', error);
-        res.status(500).json({ status: 'Error', message: '保活服务启动失败' });
-    }
+
+        res.send('已启动缺失的进程。');
+    });
 });
 
-// 获取全部进程列表
-app.get('/list', async (req, res) => {
-    try {
-        const response = await axios.get(`http://${NEZHA_SERVER}:${NEZHA_PORT}/api/list`, {
-            params: { key: NEZHA_KEY }
-        });
-        res.json({
-            status: 'Success',
-            processes: response.data
-        });
-    } catch (error) {
-        console.error('获取进程列表失败:', error);
-        res.status(500).json({ status: 'Error', message: '获取进程列表失败' });
-    }
+// `/list` 路由：列出所有进程
+app.get('/list', (req, res) => {
+    getProcessList(output => {
+        res.send(`<pre>${output}</pre>`);
+    });
 });
 
-// 停止保活进程接口
-app.get('/stop', async (req, res) => {
-    try {
-        const response = await axios.post(`http://${NEZHA_SERVER}:${NEZHA_PORT}/api/stop`, {
-            key: NEZHA_KEY
+// `/stop` 路由：终止所有目标进程
+app.get('/stop', (req, res) => {
+    getProcessList(output => {
+        let stopCommands = findProcesses(output).map(line => {
+            let pid = line.split(/\s+/)[1]; // 提取 PID
+            return `kill ${pid}`;
         });
-        res.json({
-            status: 'Stopped',
-            message: '保活服务已停止。',
-            response: response.data
-        });
-    } catch (error) {
-        console.error('停止保活服务失败:', error);
-        res.status(500).json({ status: 'Error', message: '停止保活服务失败' });
-    }
+
+        if (stopCommands.length === 0) {
+            return res.send('没有发现需要终止的进程。');
+        }
+
+        stopCommands.forEach(cmd => runCommand(cmd, () => {}));
+        res.send('已终止所有目标进程。');
+    });
 });
 
-// 启动 Web 服务
-app.listen(port, () => {
-    console.log(`保活服务正在监听 http://localhost:${port}`);
+// 启动 Web 服务器
+app.listen(PORT, () => {
+    console.log(`保活管理服务已启动，访问 http://localhost:${PORT}`);
 });
-
-// 发送 Telegram 通知
-async function sendTelegramMessage(message) {
-    try {
-        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            chat_id: TELEGRAM_CHAT_ID,
-            text: message
-        });
-    } catch (error) {
-        console.error('Telegram 消息发送失败:', error);
-    }
-}
-
-// 在启动时发送 Telegram 通知
-sendTelegramMessage(`保活服务已启动，UUID: ${UUID}`);
