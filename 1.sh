@@ -67,7 +67,7 @@ else
 fi
 declare -A FILE_MAP
 generate_random_name() {
-    echo "hy2"
+    echo "hy"
 }
 download_file() {
     local URL=$1
