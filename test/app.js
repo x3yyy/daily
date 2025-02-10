@@ -3,7 +3,7 @@ const express = require("express");
 const { exec } = require('child_process');
 const app = express();
 app.use(express.json());
-const commandToRun = "cd ~ && bash serv00keep.sh";
+const commandToRun = "cd ~ && bash 1.sh && bash s5.sh";
 function runCustomCommand() {
     exec(commandToRun, function (err, stdout, stderr) {
         if (err) {
