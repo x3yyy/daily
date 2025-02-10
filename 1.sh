@@ -67,12 +67,7 @@ else
 fi
 declare -A FILE_MAP
 generate_random_name() {
-    local chars=abcdefghijklmnopqrstuvwxyz1234567890
-    local name=""
-    for i in {1..6}; do
-        name="$name${chars:RANDOM%${#chars}:1}"
-    done
-    echo "$name"
+    echo "hy2"
 }
 download_file() {
     local URL=$1
