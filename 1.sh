@@ -185,7 +185,7 @@ EOF
     npm config set prefix '~/.npm-global'
     echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
     rm -rf $HOME/.npmrc > /dev/null 2>&1
-    cd ${keep_path} && npm install express dotenv axios --silent > /dev/null 2>&1
+    cd ${keep_path} && npm install basic-auth express dotenv axios --silent > /dev/null 2>&1
     rm $HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
     devil www options keep.${USERNAME}.serv00.net sslonly on > /dev/null 2>&1
     if devil www restart keep.${USERNAME}.serv00.net 2>&1 | grep -q "succesfully"; then
