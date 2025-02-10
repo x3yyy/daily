@@ -17,7 +17,7 @@ FILE_PATH="/home/${USER}/.s5"
 ###################################################
 
 socks5_config(){
-  SOCKS5_PORT="6843"          # 固定端口号
+  SOCKS5_PORT="6936"          # 固定端口号
   SOCKS5_USER="lee"        # 固定用户名
   SOCKS5_PASS="LcQ14167374"    # 固定密码
 
