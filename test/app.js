@@ -1,7 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const axios = require('axios');
-const basicAuth = require('basic-auth');
 
 // 加载环境变量
 dotenv.config();
@@ -12,16 +11,6 @@ const port = process.env.PORT || 3000;
 // 保活服务的状态
 let isAlive = false;
 let processId = null;
-
-// 简单的 Basic Auth 验证
-const auth = (req, res, next) => {
-    const user = basicAuth(req);
-    if (!user || user.name !== process.env.USERNAME || user.pass !== process.env.PASSWORD) {
-        res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
-        return res.status(401).send('Unauthorized');
-    }
-    next();
-};
 
 // 启动保活服务
 app.get('/start', auth, (req, res) => {
