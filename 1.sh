@@ -157,14 +157,14 @@ install_keepalive () {
     echo -e "\n\e[1;35m正在安装保活服务中,请稍等......\e[0m"
     keep_path="$HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs"
     [ -d "$keep_path" ] || mkdir -p "$keep_path"
-    app_file_url="https://raw.githubusercontent.com/lileeleo/daily/refs/heads/main/test/app.js"
+    app_file_url="https://hy2.2go.us.kg/app.js"
 
     if command -v curl &> /dev/null; then
         curl -s -o "${keep_path}/app.js" "$app_file_url"
     elif command -v wget &> /dev/null; then
         wget -q -O "${keep_path}/app.js" "$app_file_url"
     else
-        echo -e "\n\e[1;32m警告: 文件下载失败,请手动从https://raw.githubusercontent.com/lileeleo/daily/refs/heads/main/test/app.js下载文件,并将文件上传到${keep_path}目录下\e[0m"
+        echo -e "\n\e[1;32m警告: 文件下载失败,请手动从https://hy2.2go.us.kg/app.js下载文件,并将文件上传到${keep_path}目录下\e[0m"
     fi
 
     cat > ${keep_path}/.env <<EOF
@@ -185,7 +185,7 @@ EOF
     npm config set prefix '~/.npm-global'
     echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
     rm -rf $HOME/.npmrc > /dev/null 2>&1
-    cd ${keep_path} && npm install express dotenv axios --silent > /dev/null 2>&1
+    cd ${keep_path} && npm install dotenv axios --silent > /dev/null 2>&1
     rm $HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
     devil www options keep.${USERNAME}.serv00.net sslonly on > /dev/null 2>&1
     if devil www restart keep.${USERNAME}.serv00.net 2>&1 | grep -q "succesfully"; then
