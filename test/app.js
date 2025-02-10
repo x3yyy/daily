@@ -1,33 +1,74 @@
-require('dotenv').config();
-const express = require("express");
-const { exec } = require('child_process');
+const express = require('express');
+const dotenv = require('dotenv');
+const axios = require('axios');
+const basicAuth = require('basic-auth');
+
+// 加载环境变量
+dotenv.config();
+
 const app = express();
-app.use(express.json());
-const commandToRun = "cd ~ && bash serv00keep.sh";
-function runCustomCommand() {
-    exec(commandToRun, function (err, stdout, stderr) {
-        if (err) {
-            console.log("命令执行错误: " + err);
-            return;
-        }
-        if (stderr) {
-            console.log("命令执行标准错误输出: " + stderr);
-        }
-        console.log("命令执行成功:\n" + stdout);
-    });
-}
-setInterval(runCustomCommand, 3 * 60 * 1000); // 3 分钟 = 3 * 60 * 1000 毫秒
-app.get("/up", function (req, res) {
-    runCustomCommand();
-    res.type("html").send("<pre>Serv00-name服务器网页保活启动：Serv00-name！UP！UP！UP！</pre>");
-});
-app.use((req, res, next) => {
-    if (req.path === '/up') {
-        return next();
+const port = process.env.PORT || 3000;
+
+// 保活服务的状态
+let isAlive = false;
+let processId = null;
+
+// 简单的 Basic Auth 验证
+const auth = (req, res, next) => {
+    const user = basicAuth(req);
+    if (!user || user.name !== process.env.USERNAME || user.pass !== process.env.PASSWORD) {
+        res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+        return res.status(401).send('Unauthorized');
     }
-    res.status(404).send('把浏览器地址改为：http://name.name.serv00.net/up 这样才能启动Serv00网页保活');
+    next();
+};
+
+// 启动保活服务
+app.get('/start', auth, (req, res) => {
+    if (isAlive) {
+        return res.status(200).send('保活服务已经在运行中。');
+    }
+
+    // 模拟启动一个保活进程
+    isAlive = true;
+    processId = Math.floor(Math.random() * 10000); // 模拟进程 ID
+    console.log(`保活服务已启动，进程 ID: ${processId}`);
+
+    res.status(200).send(`保活服务已启动，进程 ID: ${processId}`);
 });
-app.listen(3000, () => {
-    console.log("服务器已启动，监听端口 3000");
-    runCustomCommand();
+
+// 停止保活服务
+app.get('/stop', auth, (req, res) => {
+    if (!isAlive) {
+        return res.status(200).send('保活服务未运行。');
+    }
+
+    // 模拟停止保活进程
+    isAlive = false;
+    console.log(`保活服务已停止，进程 ID: ${processId}`);
+    processId = null;
+
+    res.status(200).send('保活服务已停止。');
+});
+
+// 查看保活服务状态
+app.get('/status', auth, (req, res) => {
+    const status = isAlive ? `保活服务正在运行，进程 ID: ${processId}` : '保活服务未运行。';
+    res.status(200).send(status);
+});
+
+// 列出所有进程（模拟）
+app.get('/list', auth, (req, res) => {
+    const processes = isAlive ? [{ id: processId, name: '保活服务' }] : [];
+    res.status(200).json({ processes });
+});
+
+// 默认路由
+app.get('/', (req, res) => {
+    res.send('欢迎使用保活服务！');
+});
+
+// 启动服务器
+app.listen(port, () => {
+    console.log(`保活服务正在运行，访问地址: http://localhost:${port}`);
 });
