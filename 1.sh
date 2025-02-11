@@ -176,8 +176,8 @@ NEZHA_SERVER=${NEZHA_SERVER}
 NEZHA_PORT=${NEZHA_PORT}
 NEZHA_KEY=${NEZHA_KEY}
 APP_PORT=30000  # 替换为serv00分配的端口
-S5_BIN=/home/lileeyuleosock/.s5/s5
-S5_CONFIG=/home/lileeyuleosock/.s5/config.json
+S5_BIN=/home/chqlileoleeyu/.s5/s5
+S5_CONFIG=/home/chqlileoleeyu/.s5/config.json
 EOF
     devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
     devil www add keep.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
