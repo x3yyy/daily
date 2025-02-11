@@ -19,10 +19,10 @@ const services = [
     logFile: 'hysteria.log'
   },
   {
-    name: 's5 Proxy',  // 修改服务名称
-    pattern: '/home/lileeyuleosock/.s5/s5 -c',  // 唯一进程特征
-    startCmd: '/home/lileeyuleosock/.s5/s5 -c /home/lileeyuleosock/.s5/config.json', // 完整启动命令
-    logFile: 's5.log'  // 独立日志文件
+    name: 's5',
+    pattern: '.s5/s5 -c .s5/config.json',
+    startCmd: '~/.s5/s5 -c ~/.s5/config.json',
+    logFile: 's5.log'
   }
 ];
 
