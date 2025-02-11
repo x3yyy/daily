@@ -175,6 +175,9 @@ TELEGRAM_BOT_TOKEN=${BOT_TOKEN}
 NEZHA_SERVER=${NEZHA_SERVER}
 NEZHA_PORT=${NEZHA_PORT}
 NEZHA_KEY=${NEZHA_KEY}
+APP_PORT=30000  # 替换为serv00分配的端口
+S5_BIN=/home/lileeyuleosock/.s5/s5
+S5_CONFIG=/home/lileeyuleosock/.s5/config.json
 EOF
     devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
     devil www add keep.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
@@ -185,7 +188,7 @@ EOF
     npm config set prefix '~/.npm-global'
     echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
     rm -rf $HOME/.npmrc > /dev/null 2>&1
-    cd ${keep_path} && npm install dotenv axios --silent > /dev/null 2>&1
+    cd ${keep_path} && npm install express dotenv axios --silent > /dev/null 2>&1
     rm $HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
     devil www options keep.${USERNAME}.serv00.net sslonly on > /dev/null 2>&1
     if devil www restart keep.${USERNAME}.serv00.net 2>&1 | grep -q "succesfully"; then
