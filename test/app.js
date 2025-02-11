@@ -1,1 +1,141 @@
-var _0x65e45f=_0xba1d;function _0x4200(){var _0x3053de=['length','env','13JNSjMu','Serv00保活通知\x0a\x0a✅\x20所有服务已启动!\x0a账户:\x20','/start','startsWith','test','toString','2495603uuwhcv','\x0a\x0a请检查账号是否已被封锁','writeHead','dotenv','2NqwUjX','Content-Type','nezha','1195hmlrVD','search','table','HTTP\x20server\x20running\x20on\x20port\x20','所有服务都正在运行','partial','⚠️\x20','trim','506947SLjwAH','http','\x20-\x20Running\x20restart\x20script\x20for\x20all\x20services.','split','unlinkSync','readFileSync','\x20服务离线\x0a\x0a账户:\x20','Failed\x20to\x20get\x20process\x20list.','/status','name','Not\x20Found','ps\x20aux','所有服务已成功停止！','application/json;\x20charset=utf-8','6uMIuWi','\x20服务重启失败\x0a账户:\x20','332811jXcyrV','includes','writeFileSync','info','Serv00保活通知\x0a\x0a❌\x20','\x20-\x20','\x20-\x20Stopping\x20monitoring\x20services.','\x20-\x20Failed\x20to\x20send\x20Telegram\x20message:\x20','createServer','url','return\x20(function()\x20','userInfo','\x20-\x20Nezha\x20服务未启用，缺少\x20NEZHA_SERVER、NEZHA_PORT\x20或\x20NEZHA_KEY\x20环境变量。','log','child_process','221157LhTOyK','\x20&&\x20bash\x20','toISOString','trace','get','16KUyTii','部分服务启动失败，请手动检查！','❌\x20重启脚本执行失败\x0a\x0a账户:\x20','exception','TELEGRAM_CHAT_ID','NEZHA_PORT','\x0a错误详情:\x20','config','7319232fmvaeV','(((.+)+)+)+$','✅\x20所有服务已成功重启!\x0a\x0a账户:\x20','/list','\x20-\x20Nezha\x20服务已启用。','422904fwtgBS','部分服务停止失败，请手动检查！','Hello\x20world!\x0a','server\x20config.yaml','10zcqwec','stringify','string','setHeader','text/plain;\x20charset=utf-8','running','error','\x0a\x0a尝试重新启动服务...','\x20&&\x20','end','listen','\x0a服务器:\x20','utf8','warn','/2.sh','\x20-\x20Failed\x20to\x20check\x20process:\x20','hy2','message','apply','success','__proto__','.env','filter','push','hostname','stopped','NEZHA_KEY','\x20-\x20Telegram\x20credentials\x20not\x20configured.','2632EXkghQ','/stop','map','console','data','\x20-\x20Starting\x20monitoring\x20services.','\x20-\x20Failed\x20to\x20get\x20process\x20list:\x20','match','constructor','bind','\x20-\x20Stopped\x20process\x20with\x20PID:\x20'];_0x4200=function(){return _0x3053de;};return _0x4200();}(function(_0x17357,_0x4f287c){var _0x3fd9e1=_0xba1d,_0x3a125c=_0x17357();while(!![]){try{var _0x152d14=-parseInt(_0x3fd9e1(0x196))/0x1+parseInt(_0x3fd9e1(0x16c))/0x2*(parseInt(_0x3fd9e1(0x1a8))/0x3)+-parseInt(_0x3fd9e1(0x155))/0x4*(parseInt(_0x3fd9e1(0x16f))/0x5)+parseInt(_0x3fd9e1(0x185))/0x6*(parseInt(_0x3fd9e1(0x177))/0x7)+-parseInt(_0x3fd9e1(0x19b))/0x8*(parseInt(_0x3fd9e1(0x187))/0x9)+parseInt(_0x3fd9e1(0x1ac))/0xa*(-parseInt(_0x3fd9e1(0x168))/0xb)+-parseInt(_0x3fd9e1(0x1a3))/0xc*(-parseInt(_0x3fd9e1(0x162))/0xd);if(_0x152d14===_0x4f287c)break;else _0x3a125c['push'](_0x3a125c['shift']());}catch(_0x160458){_0x3a125c['push'](_0x3a125c['shift']());}}}(_0x4200,0x232cb));var _0x449119=(function(){var _0x4142a7=!![];return function(_0x4636b0,_0x1ce576){var _0x304d2a=_0x4142a7?function(){var _0x2c4b96=_0xba1d;if(_0x1ce576){var _0x745426=_0x1ce576[_0x2c4b96(0x14b)](_0x4636b0,arguments);return _0x1ce576=null,_0x745426;}}:function(){};return _0x4142a7=![],_0x304d2a;};}()),_0xf74095=_0x449119(this,function(){var _0x504e48=_0xba1d;return _0xf74095['toString']()[_0x504e48(0x170)](_0x504e48(0x1a4))[_0x504e48(0x167)]()['constructor'](_0xf74095)['search'](_0x504e48(0x1a4));});_0xf74095();var _0x46818a=(function(){var _0x256b06=!![];return function(_0x59df0d,_0x16ad55){var _0x59e0e7=_0x256b06?function(){var _0x3b20f9=_0xba1d;if(_0x16ad55){var _0x368cc5=_0x16ad55[_0x3b20f9(0x14b)](_0x59df0d,arguments);return _0x16ad55=null,_0x368cc5;}}:function(){};return _0x256b06=![],_0x59e0e7;};}()),_0x14f379=_0x46818a(this,function(){var _0x45d55f=_0xba1d,_0x56cc84=function(){var _0x1ec887=_0xba1d,_0x2901ab;try{_0x2901ab=Function(_0x1ec887(0x191)+'{}.constructor(\x22return\x20this\x22)(\x20)'+');')();}catch(_0x109775){_0x2901ab=window;}return _0x2901ab;},_0xd57a57=_0x56cc84(),_0x52066f=_0xd57a57[_0x45d55f(0x158)]=_0xd57a57[_0x45d55f(0x158)]||{},_0xcf1eb8=[_0x45d55f(0x194),_0x45d55f(0x146),_0x45d55f(0x18a),'error',_0x45d55f(0x19e),_0x45d55f(0x171),_0x45d55f(0x199)];for(var _0x20a653=0x0;_0x20a653<_0xcf1eb8[_0x45d55f(0x160)];_0x20a653++){var _0x30c18d=_0x46818a[_0x45d55f(0x15d)]['prototype'][_0x45d55f(0x15e)](_0x46818a),_0x543938=_0xcf1eb8[_0x20a653],_0x4da50f=_0x52066f[_0x543938]||_0x30c18d;_0x30c18d[_0x45d55f(0x14d)]=_0x46818a['bind'](_0x46818a),_0x30c18d['toString']=_0x4da50f[_0x45d55f(0x167)][_0x45d55f(0x15e)](_0x4da50f),_0x52066f[_0x543938]=_0x30c18d;}});_0x14f379();var http=require(_0x65e45f(0x178)),{execSync}=require(_0x65e45f(0x195)),axios=require('axios'),fs=require('fs'),os=require('os');require(_0x65e45f(0x16b))[_0x65e45f(0x1a2)]();var TELEGRAM_CHAT_ID=process['env'][_0x65e45f(0x19f)],TELEGRAM_BOT_TOKEN=process[_0x65e45f(0x161)]['TELEGRAM_BOT_TOKEN'],HOSTNAME=os[_0x65e45f(0x151)](),USERNAME=os[_0x65e45f(0x192)]()['username'],RESTART_SCRIPT_URL='https://github.com/eooce/Sing-box/releases/download/00/2.sh',SCRIPT_PATH=os['homedir']()+_0x65e45f(0x147),services=[{'name':_0x65e45f(0x149),'match':_0x65e45f(0x1ab)}];process[_0x65e45f(0x161)]['NEZHA_SERVER']&&process[_0x65e45f(0x161)][_0x65e45f(0x1a0)]&&process[_0x65e45f(0x161)][_0x65e45f(0x153)]?(services[_0x65e45f(0x150)]({'name':_0x65e45f(0x16e),'match':/-s .+:\d+ -p .+/}),console['log'](new Date()[_0x65e45f(0x198)]()+_0x65e45f(0x1a7))):console['log'](new Date()['toISOString']()+_0x65e45f(0x193));function isProcessRunning(_0x2f2f84){var _0x1be7cd=_0x65e45f;try{var _0x43c9d2=execSync(_0x1be7cd(0x182))[_0x1be7cd(0x167)]();if(typeof _0x2f2f84===_0x1be7cd(0x1ae))return _0x43c9d2[_0x1be7cd(0x188)](_0x2f2f84);else{if(_0x2f2f84 instanceof RegExp)return _0x2f2f84[_0x1be7cd(0x166)](_0x43c9d2);}return![];}catch(_0x7b3486){return console[_0x1be7cd(0x13f)](new Date()[_0x1be7cd(0x198)]()+_0x1be7cd(0x148)+_0x7b3486[_0x1be7cd(0x14a)]),![];}}async function downloadAndRunRestartScript(){var _0x21d832=_0x65e45f;try{var _0x10a507=await axios[_0x21d832(0x19a)](RESTART_SCRIPT_URL);fs[_0x21d832(0x189)](SCRIPT_PATH,_0x10a507[_0x21d832(0x159)],{'mode':0x1ed});var _0x1fd732=fs[_0x21d832(0x17c)](_0x21d832(0x14e),_0x21d832(0x145)),_0x14a5b2=_0x1fd732[_0x21d832(0x17a)]('\x0a')[_0x21d832(0x14f)](function(_0x46895c){var _0x11f1bd=_0x21d832;return _0x46895c[_0x11f1bd(0x176)]()!==''&&!_0x46895c[_0x11f1bd(0x165)]('#');})[_0x21d832(0x157)](function(_0x45e235){return'export\x20'+_0x45e235;})['join'](_0x21d832(0x141));return console[_0x21d832(0x194)](new Date()[_0x21d832(0x198)]()+_0x21d832(0x179)),execSync(_0x14a5b2+_0x21d832(0x197)+SCRIPT_PATH,{'stdio':'inherit'}),fs[_0x21d832(0x17b)](SCRIPT_PATH),!![];}catch(_0x355e69){return console[_0x21d832(0x13f)](new Date()[_0x21d832(0x198)]()+'\x20-\x20Failed\x20to\x20run\x20restart\x20script:\x20'+_0x355e69[_0x21d832(0x14a)]),await sendTelegramMessage(_0x21d832(0x19d)+USERNAME+_0x21d832(0x144)+HOSTNAME+_0x21d832(0x1a1)+_0x355e69[_0x21d832(0x14a)]),![];}}async function sendTelegramMessage(_0x4dbe7c){var _0x177347=_0x65e45f;if(!TELEGRAM_CHAT_ID||!TELEGRAM_BOT_TOKEN){console[_0x177347(0x146)](new Date()[_0x177347(0x198)]()+_0x177347(0x154));return;}try{await axios['post']('https://api.telegram.org/bot'+TELEGRAM_BOT_TOKEN+'/sendMessage',{'chat_id':TELEGRAM_CHAT_ID,'text':_0x4dbe7c});}catch(_0x2e3a5e){console[_0x177347(0x13f)](new Date()[_0x177347(0x198)]()+_0x177347(0x18e)+_0x2e3a5e[_0x177347(0x14a)]);}}async function monitorServices(){var _0x1c7cae=_0x65e45f,_0x27b09c=!![];for(var _0x57be1d of services){if(!isProcessRunning(_0x57be1d['match'])){console[_0x1c7cae(0x194)](new Date()[_0x1c7cae(0x198)]()+_0x1c7cae(0x18c)+_0x57be1d[_0x1c7cae(0x180)]+'\x20is\x20not\x20running.'),await sendTelegramMessage(_0x1c7cae(0x175)+_0x57be1d[_0x1c7cae(0x180)]+_0x1c7cae(0x17d)+USERNAME+_0x1c7cae(0x144)+HOSTNAME+_0x1c7cae(0x140)),_0x27b09c=![];break;}}if(!_0x27b09c){var _0x45fe4b=await downloadAndRunRestartScript();if(_0x45fe4b){await new Promise(_0x37fd0b=>setTimeout(_0x37fd0b,0x4e20)),await sendTelegramMessage('Serv00保活通知\x0a\x0a✅\x20所有服务已成功重启!\x0a账户:\x20'+USERNAME+_0x1c7cae(0x144)+HOSTNAME+'\x0a');var _0x33f7e8=!![];for(var _0x57be1d of services){!isProcessRunning(_0x57be1d[_0x1c7cae(0x15c)])&&(_0x33f7e8=![],console[_0x1c7cae(0x194)](new Date()[_0x1c7cae(0x198)]()+_0x1c7cae(0x18c)+_0x57be1d[_0x1c7cae(0x180)]+'\x20failed\x20to\x20restart.'),await sendTelegramMessage(_0x1c7cae(0x18b)+_0x57be1d[_0x1c7cae(0x180)]+_0x1c7cae(0x186)+USERNAME+_0x1c7cae(0x144)+HOSTNAME+_0x1c7cae(0x169)));}_0x33f7e8&&(console[_0x1c7cae(0x194)](new Date()[_0x1c7cae(0x198)]()+'\x20-\x20All\x20services\x20restarted\x20successfully.'),await sendTelegramMessage(_0x1c7cae(0x1a5)+USERNAME+_0x1c7cae(0x144)+HOSTNAME+'\x0a'));}}}function _0xba1d(_0x10842b,_0x162b7c){var _0x5ceea8=_0x4200();return _0xba1d=function(_0x14f379,_0x46818a){_0x14f379=_0x14f379-0x13d;var _0x3ec505=_0x5ceea8[_0x14f379];return _0x3ec505;},_0xba1d(_0x10842b,_0x162b7c);}var monitorInterval=null;function startMonitoring(){var _0x50a7c2=_0x65e45f;!monitorInterval&&(console[_0x50a7c2(0x194)](new Date()['toISOString']()+_0x50a7c2(0x15a)),monitorInterval=setInterval(monitorServices,0x1d4c0));}function stopMonitoring(){var _0x3ee81e=_0x65e45f;monitorInterval&&(console[_0x3ee81e(0x194)](new Date()[_0x3ee81e(0x198)]()+_0x3ee81e(0x18d)),clearInterval(monitorInterval),monitorInterval=null);}function getProcessList(){var _0x35d336=_0x65e45f;try{var _0x597da8=execSync(_0x35d336(0x182))['toString']();return _0x597da8;}catch(_0x587aae){return console[_0x35d336(0x13f)](new Date()[_0x35d336(0x198)]()+_0x35d336(0x15b)+_0x587aae[_0x35d336(0x14a)]),null;}}function stopProcess(_0x573e40){var _0x27ca1e=_0x65e45f;try{var _0x1c639d=execSync(_0x27ca1e(0x182))[_0x27ca1e(0x167)](),_0x372900=_0x1c639d[_0x27ca1e(0x17a)]('\x0a');for(var _0x4e5a30 of _0x372900){if(_0x4e5a30['includes'](_0x573e40)){var _0x22cccd=_0x4e5a30['trim']()[_0x27ca1e(0x17a)](/\s+/)[0x1];execSync('kill\x20-9\x20'+_0x22cccd),console[_0x27ca1e(0x194)](new Date()[_0x27ca1e(0x198)]()+_0x27ca1e(0x15f)+_0x22cccd);}}return!![];}catch(_0x25c33e){return console[_0x27ca1e(0x13f)](new Date()[_0x27ca1e(0x198)]()+'\x20-\x20Failed\x20to\x20stop\x20process:\x20'+_0x25c33e[_0x27ca1e(0x14a)]),![];}}var server=http[_0x65e45f(0x18f)](async function(_0x5054bb,_0x58ed24){var _0xc369eb=_0x65e45f;if(_0x5054bb[_0xc369eb(0x190)]==='/')_0x58ed24[_0xc369eb(0x16a)](0xc8,{'Content-Type':'text/plain;\x20charset=utf-8'}),_0x58ed24[_0xc369eb(0x142)](_0xc369eb(0x1aa));else{if(_0x5054bb['url']===_0xc369eb(0x164)){_0x58ed24[_0xc369eb(0x1af)](_0xc369eb(0x16d),_0xc369eb(0x184));var _0xe02551=!![];for(var _0x6cf359 of services){if(!isProcessRunning(_0x6cf359[_0xc369eb(0x15c)])){_0xe02551=![];break;}}if(_0xe02551)_0x58ed24[_0xc369eb(0x142)](JSON[_0xc369eb(0x1ad)]({'status':'running','message':_0xc369eb(0x173)},null,0x2)),sendTelegramMessage('✅\x20Serv00自动保活服务已启动\x0a\x0a账户:\x20'+USERNAME+'\x0a服务器:\x20'+HOSTNAME);else{var _0x7d2bf0=await downloadAndRunRestartScript();startMonitoring();if(_0x7d2bf0){await new Promise(_0x433efc=>setTimeout(_0x433efc,0x4e20));var _0x16574d=!![];for(var _0x6cf359 of services){if(!isProcessRunning(_0x6cf359[_0xc369eb(0x15c)])){_0x16574d=![];break;}}_0x16574d?(startMonitoring(),_0x58ed24[_0xc369eb(0x142)](JSON['stringify']({'status':_0xc369eb(0x14c),'message':'所有服务已成功启动！'},null,0x2)),await sendTelegramMessage(_0xc369eb(0x163)+USERNAME+_0xc369eb(0x144)+HOSTNAME+'\x0a')):(startMonitoring(),_0x58ed24[_0xc369eb(0x142)](JSON['stringify']({'status':_0xc369eb(0x174),'message':_0xc369eb(0x19c)},null,0x2)));}else startMonitoring(),_0x58ed24[_0xc369eb(0x142)](JSON[_0xc369eb(0x1ad)]({'status':_0xc369eb(0x13f),'message':'服务启动脚本执行失败。'},null,0x2));}}else{if(_0x5054bb['url']===_0xc369eb(0x156)){_0x58ed24[_0xc369eb(0x1af)]('Content-Type',_0xc369eb(0x184));var _0x7d2bf0=!![];for(var _0x6cf359 of services){if(!stopProcess(_0x6cf359['match'])){_0x7d2bf0=![];break;}}_0x7d2bf0?(stopMonitoring(),_0x58ed24[_0xc369eb(0x142)](JSON[_0xc369eb(0x1ad)]({'status':_0xc369eb(0x14c),'message':_0xc369eb(0x183)},null,0x2))):_0x58ed24[_0xc369eb(0x142)](JSON[_0xc369eb(0x1ad)]({'status':_0xc369eb(0x13f),'message':_0xc369eb(0x1a9)},null,0x2));}else{if(_0x5054bb[_0xc369eb(0x190)]===_0xc369eb(0x17f)){_0x58ed24[_0xc369eb(0x1af)](_0xc369eb(0x16d),_0xc369eb(0x184));var _0xf7cb63=services['map'](function(_0x2d3c1d){var _0x373e12=_0xc369eb;return{'name':_0x2d3c1d[_0x373e12(0x180)],'status':isProcessRunning(_0x2d3c1d['match'])?_0x373e12(0x13e):_0x373e12(0x152)};});_0x58ed24[_0xc369eb(0x142)](JSON[_0xc369eb(0x1ad)]({'monitoring':monitorInterval?_0xc369eb(0x13e):'stopped','services':_0xf7cb63},null,0x2));}else{if(_0x5054bb[_0xc369eb(0x190)]===_0xc369eb(0x1a6)){_0x58ed24[_0xc369eb(0x1af)](_0xc369eb(0x16d),_0xc369eb(0x13d));var _0x50c4aa=getProcessList();_0x50c4aa?_0x58ed24[_0xc369eb(0x142)](_0x50c4aa):_0x58ed24[_0xc369eb(0x142)](_0xc369eb(0x17e));}else _0x58ed24['statusCode']=0x194,_0x58ed24[_0xc369eb(0x1af)](_0xc369eb(0x16d),'text/plain;\x20charset=utf-8'),_0x58ed24['end'](_0xc369eb(0x181));}}}}}),PORT=0xbb8;server[_0x65e45f(0x143)](PORT,function(){var _0x4a2232=_0x65e45f;console[_0x4a2232(0x194)](_0x4a2232(0x172)+PORT),startMonitoring(),sendTelegramMessage('✅\x20Serv00自动保活服务已启动\x0a\x0a账户:\x20'+USERNAME+_0x4a2232(0x144)+HOSTNAME);});
+require('dotenv').config();
+const express = require('express');
+const { execSync, spawn } = require('child_process');
+const fs = require('fs');
+const os = require('os');
+const axios = require('axios');
+
+const app = express();
+const PORT = process.env.APP_PORT || 30000; // 使用serv00分配的端口
+const HOSTNAME = os.hostname();
+const USERNAME = os.userInfo().username;
+
+// 服务配置（重点修改部分）
+const services = [
+  {
+    name: 'Hysteria2',
+    pattern: 'server config.yaml',
+    startCmd: './web server config.yaml',
+    logFile: 'hysteria.log'
+  },
+  {
+    name: 's5 Proxy',  // 修改服务名称
+    pattern: '/home/lileeyuleosock/.s5/s5 -c',  // 唯一进程特征
+    startCmd: '/home/lileeyuleosock/.s5/s5 -c /home/lileeyuleosock/.s5/config.json', // 完整启动命令
+    logFile: 's5.log'  // 独立日志文件
+  }
+];
+
+// Telegram通知功能
+async function sendAlert(message) {
+  if (!process.env.BOT_TOKEN || !process.env.CHAT_ID) {
+    console.log('Telegram通知未配置');
+    return;
+  }
+
+  try {
+    await axios.post(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+      chat_id: process.env.CHAT_ID,
+      text: `${message}\n\n🖥️ 服务器: ${HOSTNAME}\n👤 账户: ${USERNAME}`
+    });
+  } catch (error) {
+    console.error('Telegram通知失败:', error.message);
+  }
+}
+
+// 增强型进程检查
+function checkProcess(service) {
+  try {
+    const output = execSync(
+      `ps aux | grep '${service.pattern}' | grep -v grep | awk '{print $2}'`
+    ).toString();
+    return output.trim().length > 0;
+  } catch (error) {
+    return false;
+  }
+}
+
+// 智能服务重启
+function restartService(service) {
+  try {
+    // 清理旧进程
+    execSync(`pkill -f "${service.pattern}"`);
+    
+    // 启动新进程
+    const logStream = fs.createWriteStream(service.logFile, { flags: 'a' });
+    const [cmd, ...args] = service.startCmd.split(' ');
+    const child = spawn(cmd, args, {
+      detached: true,
+      stdio: ['ignore', logStream, logStream]
+    });
+    child.unref();
+
+    // 验证启动
+    setTimeout(() => {
+      if (checkProcess(service)) {
+        sendAlert(`✅ ${service.name} 启动成功\nPID: ${child.pid}`);
+      } else {
+        sendAlert(`⚠️ ${service.name} 启动异常，请检查日志`);
+      }
+    }, 3000);
+
+    return true;
+  } catch (error) {
+    sendAlert(`❌ ${service.name} 重启失败\n错误: ${error.message}`);
+    return false;
+  }
+}
+
+// 自动监控系统
+let monitorInterval = null;
+function startMonitor() {
+  if (monitorInterval) return;
+
+  monitorInterval = setInterval(() => {
+    services.forEach(service => {
+      if (!checkProcess(service)) {
+        console.log(`[${new Date().toISOString()}] ${service.name} 离线`);
+        sendAlert(`🔄 正在重启 ${service.name}...`);
+        restartService(service);
+      }
+    });
+  }, 30000); // 30秒检测间隔
+
+  console.log('监控系统已启动');
+}
+
+// 状态检查API
+app.get('/status', (req, res) => {
+  const status = services.map(service => ({
+    name: service.name,
+    status: checkProcess(service) ? '在线' : '离线',
+    lastUpdate: new Date().toISOString()
+  }));
+  res.json(status);
+});
+
+// 强制重启端点
+app.get('/restart', (req, res) => {
+  services.forEach(service => restartService(service));
+  res.json({ 
+    status: 'success',
+    message: '已触发全服务重启'
+  });
+});
+
+// 启动服务
+app.listen(PORT, 'localhost', () => {
+  console.log(`🟢 服务运行中 | 端口: ${PORT}`);
+  sendAlert('🚀 保活系统启动成功');
+  startMonitor();
+});
+
+// 优雅关闭处理
+process.on('SIGTERM', () => {
+  console.log('正在关闭服务...');
+  clearInterval(monitorInterval);
+  services.forEach(service => {
+    execSync(`pkill -f "${service.pattern}"`);
+  });
+  process.exit(0);
+});
