@@ -3,6 +3,7 @@ const express = require('express');
 const axios = require('axios');
 const { execSync, spawn } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 30000;
@@ -12,19 +13,32 @@ let isMonitoring = false;
 let intervalId = null;
 let processes = {};
 
+// 日志目录
+const logDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
+
+// 检查必要的环境变量
+const requiredEnvVars = ['BOT_TOKEN', 'CHAT_ID', 'HYSTERIA_BIN'];
+requiredEnvVars.forEach(env => {
+  if (!process.env[env]) {
+    console.error(`缺少必要的环境变量: ${env}`);
+    process.exit(1);
+  }
+});
+
 // 进程配置
 const services = [
   {
     name: 'Hysteria2',
     pattern: 'server config.yaml',
     startCmd: `./${process.env.HYSTERIA_BIN || 'web'} server config.yaml`,
-    logFile: 'hysteria.log'
+    logFile: path.join(logDir, 'hysteria.log')
   },
   {
     name: 'S5',
     pattern: '-c /home/chqlileoleeyu/.s5/config.json',
     startCmd: '/home/chqlileoleeyu/.s5/s5 -c /home/chqlileoleeyu/.s5/config.json',
-    logFile: 's5.log'
+    logFile: path.join(logDir, 's5.log')
   }
 ];
 
@@ -38,7 +52,8 @@ async function sendTelegram(message) {
         chat_id: process.env.CHAT_ID,
         text: message,
         parse_mode: 'HTML'
-      }
+      },
+      timeout: 5000 // 设置 5 秒超时
     });
   } catch (error) {
     console.error('Telegram通知失败:', error.message);
@@ -48,8 +63,8 @@ async function sendTelegram(message) {
 // 进程检查函数
 function checkProcess(service) {
   try {
-    const output = execSync(`ps aux | grep -v grep | grep '${service.pattern}'`).toString();
-    return output.includes(service.pattern);
+    const output = execSync(`pgrep -f '${service.pattern}'`).toString();
+    return output.trim().length > 0;
   } catch {
     return false;
   }
@@ -59,9 +74,10 @@ function checkProcess(service) {
 function startService(service) {
   try {
     const logStream = fs.createWriteStream(service.logFile, { flags: 'a' });
-    const child = spawn(service.startCmd.split(' ')[0], 
-                      service.startCmd.split(' ').slice(1), 
-                      { stdio: ['ignore', logStream, logStream] });
+    const child = spawn(service.startCmd, {
+      stdio: ['ignore', logStream, logStream],
+      shell: true // 启用 shell 模式
+    });
 
     processes[service.name] = child;
     console.log(`${service.name} 启动成功 PID: ${child.pid}`);
@@ -79,6 +95,8 @@ function startMonitoring() {
   if (isMonitoring) return;
   isMonitoring = true;
 
+  if (intervalId) clearInterval(intervalId); // 清除旧的定时器
+
   intervalId = setInterval(() => {
     services.forEach(service => {
       if (!checkProcess(service)) {
@@ -92,18 +110,18 @@ function startMonitoring() {
   sendTelegram('🚀 保活监控系统已启动');
 }
 
-// 停止指定服务
-function stopService(service) {
-  if (processes[service.name]) {
-    processes[service.name].kill();
-    console.log(`${service.name} 已停止`);
-    sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
-  }
-}
-
 // 停止所有服务
 function stopAll() {
-  services.forEach(stopService);
+  services.forEach(service => {
+    if (processes[service.name]) {
+      const child = processes[service.name];
+      child.on('exit', () => {
+        console.log(`${service.name} 已停止`);
+        sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
+      });
+      child.kill();
+    }
+  });
   clearInterval(intervalId);
   isMonitoring = false;
 }
@@ -119,21 +137,19 @@ app.get('/status', (req, res) => {
 });
 
 app.get('/start', (req, res) => {
-  services.forEach(service => {
-    if (!checkProcess(service)) startService(service);
-  });
   startMonitoring();
+  services.forEach(startService);
   res.send('保活服务已启动');
 });
 
 app.get('/stop', (req, res) => {
-  services.forEach(stopService);
-  res.send('Hysteria2 和 S5 服务已停止');
+  stopAll();
+  res.send('所有服务已停止');
 });
 
 app.get('/list', (req, res) => {
   try {
-    const output = execSync('ps aux').toString();
+    const output = execSync('ps aux | grep -E "web|npm" | grep -v grep').toString();
     res.type('text/plain').send(output);
   } catch {
     res.send('没有运行中的进程');
@@ -143,8 +159,13 @@ app.get('/list', (req, res) => {
 // 启动服务器
 app.listen(port, () => {
   console.log(`保活服务运行在端口 ${port}`);
-  startMonitoring();
-  services.forEach(service => {
-    if (!checkProcess(service)) startService(service);
-  });
+  try {
+    startMonitoring();
+    services.forEach(service => {
+      if (!checkProcess(service)) startService(service);
+    });
+  } catch (error) {
+    console.error('启动失败:', error);
+    sendTelegram(`🔴 保活监控系统启动失败\n错误: <code>${error.message}</code>`);
+  }
 });
