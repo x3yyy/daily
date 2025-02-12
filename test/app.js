@@ -79,7 +79,7 @@ app.get('/start', (req, res) => {
       }
     }
   });
-  res.send('Hysteria2 和 S5 服务检查并启动（如果需要）');
+  res.send('Hysteria2 和 S5 服务检查并启动');
 });
 
 app.get('/stop', (req, res) => {
