@@ -24,7 +24,7 @@ const services = [
   },
   {
     name: 'S5',
-    pattern: '-c /home/chqlileoleeyu/.s5/config.json',
+    pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json', // 更精确的匹配模式
     startCmd: '/home/chqlileoleeyu/.s5/s5 -c /home/chqlileoleeyu/.s5/config.json',
     logFile: 's5.log'
   }
@@ -56,8 +56,10 @@ async function sendTelegram(message) {
 // 进程检查函数
 function checkProcess(service) {
   try {
-    const output = execSync(`pgrep -f '${service.pattern}'`).toString();
-    return output.trim() !== '';
+    const output = execSync(`ps aux | grep '${service.pattern}' | grep -v grep`).toString();
+    console.log(`检查进程 ${service.name}，输出:`, output); // 调试日志
+    console.log(`匹配模式: ${service.pattern}`); // 调试日志
+    return output.includes(service.pattern);
   } catch {
     return false;
   }
@@ -68,11 +70,11 @@ function startService(service, retries = 3) {
   try {
     const logStream = fs.createWriteStream(`${logDir}/${service.logFile}`, { flags: 'a' });
     const child = spawn(service.startCmd, {
-      shell: true, // 使用 shell 执行命令
+      shell: true,
       stdio: ['ignore', logStream, logStream]
     });
 
-    processes[service.name] = child;
+    processes[service.name] = child; // 确保更新 processes
     console.log(`${service.name} 启动成功 PID: ${child.pid}`);
     sendTelegram(`🟢 <b>${service.name}</b> 启动成功\nPID: <code>${child.pid}</code>`);
     return true;
@@ -108,7 +110,7 @@ function startMonitoring() {
 // 停止指定服务
 function stopService(service) {
   if (processes[service.name]) {
-    processes[service.name].kill('SIGTERM'); // 发送 SIGTERM 信号
+    processes[service.name].kill('SIGTERM');
     console.log(`${service.name} 已停止`);
     sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
   }
