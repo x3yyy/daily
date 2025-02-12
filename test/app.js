@@ -68,19 +68,34 @@ app.get('/status', (req, res) => {
   res.json({ services: status });
 });
 
-app.get('/start', (req, res) => {
+app.get('/start', async (req, res) => {
   try {
-    services.forEach(service => {
+    for (const service of services) {
       if (!checkProcess(service)) {
+        let script;
         if (service.name === 'Hysteria2') {
+          script = '1.sh';
           console.log('Hysteria2 未运行，执行 bash 1.sh');
-          execSync('cd ~ && bash 1.sh'); // 先切换到用户主目录再执行 1.sh 脚本
         } else if (service.name === 'S5') {
+          script = 's5.sh';
           console.log('S5 未运行，执行 bash s5.sh');
-          execSync('cd ~ && bash s5.sh'); // 先切换到用户主目录再执行 s5.sh 脚本
+        }
+
+        if (script) {
+          await new Promise((resolve, reject) => {
+            exec(`cd ~ && bash ${script}`, (error, stdout, stderr) => {
+              if (error) {
+                console.error(`Error executing ${script}:`, stderr);
+                reject(error);
+              } else {
+                console.log(`Successfully executed ${script}:`, stdout);
+                resolve();
+              }
+            });
+          });
         }
       }
-    });
+    }
     res.send('Hysteria2 和 S5 服务检查并启动');
   } catch (error) {
     console.error('Error occurred during /start route execution:', error);
