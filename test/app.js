@@ -172,10 +172,17 @@ app.get('/status', (req, res) => {
 
 app.get('/start', (req, res) => {
   services.forEach(service => {
-    if (!checkProcess(service)) startService(service);
+    if (!checkProcess(service)) {
+      if (service.name === 'Hysteria2') {
+        console.log('Hysteria2 未运行，执行 bash 1.sh');
+        execSync('bash 1.sh'); // 执行 1.sh 脚本
+      } else if (service.name === 'S5') {
+        console.log('S5 未运行，执行 bash s5.sh');
+        execSync('bash s5.sh'); // 执行 s5.sh 脚本
+      }
+    }
   });
-  startMonitoring();
-  res.send('保活服务已启动');
+  res.send('Hysteria2 和 S5 服务检查并启动（如果需要）');
 });
 
 app.get('/stop', (req, res) => {
