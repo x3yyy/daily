@@ -93,9 +93,9 @@ for entry in "${FILE_INFO[@]}"; do
     URL=$(echo "$entry" | cut -d ' ' -f 1)
     RANDOM_NAME=$(generate_random_name)
     NEW_FILENAME="$DOWNLOAD_DIR/$RANDOM_NAME"
-    
+
     download_file "$URL" "$NEW_FILENAME"
-    
+
     chmod +x "$NEW_FILENAME"
     FILE_MAP[$(echo "$entry" | cut -d ' ' -f 2)]="$NEW_FILENAME"
 done
@@ -115,7 +115,7 @@ get_ip() {
   else
       FIRST_IP=${IP_LIST[0]}
       RESPONSE=$(curl -s --max-time 2 "${API_URL}/${FIRST_IP}")
-      
+
       if [[ $(echo "$RESPONSE" | jq -r '.status') == "Available" ]]; then
           IP=$FIRST_IP
       else
@@ -201,7 +201,7 @@ EOF
         echo -e "\e[1;32m========================================================\e[0m"
         echo -e "\e[1;33m如发现掉线访问https://keep.${USERNAME}.serv00.net/start唤醒,或者用https://console.cron-job.org在线访问网页自动唤醒\n\e[0m"
         echo -e "\e[1;35m如果需要Telegram通知，请先在Telegram @Botfather 申请 Bot-Token，并带CHAT_ID和BOT_TOKEN环境变量运行\n\n\e[0m"
-        
+
     else
         echo -e "\e[1;91m全自动保活服务安装失败,请删除所有文件夹后重试\n\e[0m"
     fi
@@ -230,6 +230,7 @@ run() {
     sleep 1
     pgrep -x "$(basename ${FILE_MAP[web]})" > /dev/null && echo -e "\e[1;32m$(basename ${FILE_MAP[web]}) is running\e[0m" || { echo -e "\e[1;35m$(basename ${FILE_MAP[web]}) is not running, restarting...\e[0m"; pkill -f "$(basename ${FILE_MAP[web]})" && nohup ./"$(basename ${FILE_MAP[web]})" server config.yaml >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32m$(basename ${FILE_MAP[web]}) restarted\e[0m"; }
   fi
+rm -rf "$(basename ${FILE_MAP[web]})" "$(basename ${FILE_MAP[npm]})"
 }
 run
 
@@ -259,7 +260,7 @@ cat << EOF
   fast-open: true
 EOF
 echo -e "\n\e[1;35m节点订阅链接: https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log  适用于V2ranN/Nekobox/Karing/小火箭/sterisand/Loon 等\033[0m\n"
-#rm -rf config.yaml fake_useragent_0.2.0.json
+rm -rf config.yaml fake_useragent_0.2.0.json
 install_keepalive
 echo -e "\e[1;35m老王serv00|CT8单协议hysteria2无交互一键安装脚本\e[0m"
 echo -e "\e[1;35m脚本地址：https://github.com/eooce/sing-box\e[0m"
