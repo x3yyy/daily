@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const { execSync } = require('child_process');
+const { exec } = require('child_process');
 const fs = require('fs');
 
 const app = express();
