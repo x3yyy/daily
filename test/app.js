@@ -31,7 +31,7 @@ const services = [
 // Telegram通知函数
 async function sendTelegram(message) {
   if (!process.env.BOT_TOKEN || !process.env.CHAT_ID) return;
-  
+
   try {
     await axios.get(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
       params: {
@@ -62,7 +62,7 @@ function startService(service) {
     const child = spawn(service.startCmd.split(' ')[0], 
                       service.startCmd.split(' ').slice(1), 
                       { stdio: ['ignore', logStream, logStream] });
-    
+
     processes[service.name] = child;
     console.log(`${service.name} 启动成功 PID: ${child.pid}`);
     sendTelegram(`🟢 <b>${service.name}</b> 启动成功\nPID: <code>${child.pid}</code>`);
@@ -78,7 +78,7 @@ function startService(service) {
 function startMonitoring() {
   if (isMonitoring) return;
   isMonitoring = true;
-  
+
   intervalId = setInterval(() => {
     services.forEach(service => {
       if (!checkProcess(service)) {
@@ -92,15 +92,18 @@ function startMonitoring() {
   sendTelegram('🚀 保活监控系统已启动');
 }
 
+// 停止指定服务
+function stopService(service) {
+  if (processes[service.name]) {
+    processes[service.name].kill();
+    console.log(`${service.name} 已停止`);
+    sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
+  }
+}
+
 // 停止所有服务
 function stopAll() {
-  services.forEach(service => {
-    if (processes[service.name]) {
-      processes[service.name].kill();
-      console.log(`${service.name} 已停止`);
-      sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
-    }
-  });
+  services.forEach(stopService);
   clearInterval(intervalId);
   isMonitoring = false;
 }
@@ -116,19 +119,21 @@ app.get('/status', (req, res) => {
 });
 
 app.get('/start', (req, res) => {
+  services.forEach(service => {
+    if (!checkProcess(service)) startService(service);
+  });
   startMonitoring();
-  services.forEach(startService);
   res.send('保活服务已启动');
 });
 
 app.get('/stop', (req, res) => {
-  stopAll();
-  res.send('所有服务已停止');
+  services.forEach(stopService);
+  res.send('Hysteria2 和 S5 服务已停止');
 });
 
 app.get('/list', (req, res) => {
   try {
-    const output = execSync('ps aux | grep -E "web|npm" | grep -v grep').toString();
+    const output = execSync('ps aux').toString();
     res.type('text/plain').send(output);
   } catch {
     res.send('没有运行中的进程');
