@@ -8,8 +8,10 @@ const app = express();
 const port = process.env.PORT || 30000;
 
 // 全局状态变量
-let isMonitoring = false;
-let intervalId = null;
+const monitorState = {
+  isMonitoring: false,
+  intervalId: null
+};
 let processes = {};
 
 // 进程配置
@@ -27,6 +29,12 @@ const services = [
     logFile: 's5.log'
   }
 ];
+
+// 创建日志目录
+const logDir = './logs';
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir);
+}
 
 // Telegram通知函数
 async function sendTelegram(message) {
@@ -48,20 +56,21 @@ async function sendTelegram(message) {
 // 进程检查函数
 function checkProcess(service) {
   try {
-    const output = execSync(`ps aux | grep -v grep | grep '${service.pattern}'`).toString();
-    return output.includes(service.pattern);
+    const output = execSync(`pgrep -f '${service.pattern}'`).toString();
+    return output.trim() !== '';
   } catch {
     return false;
   }
 }
 
 // 启动单个服务
-function startService(service) {
+function startService(service, retries = 3) {
   try {
-    const logStream = fs.createWriteStream(service.logFile, { flags: 'a' });
-    const child = spawn(service.startCmd.split(' ')[0], 
-                      service.startCmd.split(' ').slice(1), 
-                      { stdio: ['ignore', logStream, logStream] });
+    const logStream = fs.createWriteStream(`${logDir}/${service.logFile}`, { flags: 'a' });
+    const child = spawn(service.startCmd, {
+      shell: true, // 使用 shell 执行命令
+      stdio: ['ignore', logStream, logStream]
+    });
 
     processes[service.name] = child;
     console.log(`${service.name} 启动成功 PID: ${child.pid}`);
@@ -70,16 +79,20 @@ function startService(service) {
   } catch (error) {
     console.error(`${service.name} 启动失败:`, error);
     sendTelegram(`🔴 <b>${service.name}</b> 启动失败\n错误: <code>${error.message}</code>`);
+    if (retries > 0) {
+      console.log(`重试启动 ${service.name}...`);
+      return startService(service, retries - 1);
+    }
     return false;
   }
 }
 
 // 保活监控循环
 function startMonitoring() {
-  if (isMonitoring) return;
-  isMonitoring = true;
+  if (monitorState.isMonitoring) return;
+  monitorState.isMonitoring = true;
 
-  intervalId = setInterval(() => {
+  monitorState.intervalId = setInterval(() => {
     services.forEach(service => {
       if (!checkProcess(service)) {
         console.log(`${service.name} 未运行，尝试启动...`);
@@ -95,7 +108,7 @@ function startMonitoring() {
 // 停止指定服务
 function stopService(service) {
   if (processes[service.name]) {
-    processes[service.name].kill();
+    processes[service.name].kill('SIGTERM'); // 发送 SIGTERM 信号
     console.log(`${service.name} 已停止`);
     sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
   }
@@ -104,8 +117,8 @@ function stopService(service) {
 // 停止所有服务
 function stopAll() {
   services.forEach(stopService);
-  clearInterval(intervalId);
-  isMonitoring = false;
+  clearInterval(monitorState.intervalId);
+  monitorState.isMonitoring = false;
 }
 
 // Express路由
@@ -115,7 +128,7 @@ app.get('/status', (req, res) => {
     running: checkProcess(service),
     pid: processes[service.name]?.pid || 'N/A'
   }));
-  res.json({ monitoring: isMonitoring, services: status });
+  res.json({ monitoring: monitorState.isMonitoring, services: status });
 });
 
 app.get('/start', (req, res) => {
