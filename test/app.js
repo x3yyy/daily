@@ -24,7 +24,7 @@ const services = [
   },
   {
     name: 'S5',
-    pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json', // 更精确的匹配模式
+    pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json',
     startCmd: '/home/chqlileoleeyu/.s5/s5 -c /home/chqlileoleeyu/.s5/config.json',
     logFile: 's5.log'
   }
@@ -57,8 +57,6 @@ async function sendTelegram(message) {
 function checkProcess(service) {
   try {
     const output = execSync(`ps aux | grep '${service.pattern}' | grep -v grep`).toString();
-    console.log(`检查进程 ${service.name}，输出:`, output); // 调试日志
-    console.log(`匹配模式: ${service.pattern}`); // 调试日志
     return output.includes(service.pattern);
   } catch {
     return false;
@@ -89,36 +87,31 @@ function startService(service, retries = 3) {
   }
 }
 
-// 保活监控循环
-function startMonitoring() {
-  if (monitorState.isMonitoring) return;
-  monitorState.isMonitoring = true;
-
-  monitorState.intervalId = setInterval(() => {
-    services.forEach(service => {
-      if (!checkProcess(service)) {
-        console.log(`${service.name} 未运行，尝试启动...`);
-        startService(service);
-      }
-    });
-  }, 60000); // 每分钟检查一次
-
-  console.log('保活监控已启动');
-  sendTelegram('🚀 保活监控系统已启动');
-}
-
 // 停止指定服务
 function stopService(service) {
   if (processes[service.name]) {
-    processes[service.name].kill('SIGTERM');
-    console.log(`${service.name} 已停止`);
-    sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
+    try {
+      processes[service.name].kill('SIGTERM'); // 先尝试优雅终止
+      console.log(`${service.name} 已发送 SIGTERM 信号`);
+      setTimeout(() => {
+        if (checkProcess(service)) {
+          processes[service.name].kill('SIGKILL'); // 如果进程仍在运行，强制终止
+          console.log(`${service.name} 已发送 SIGKILL 信号`);
+        } else {
+          console.log(`${service.name} 已成功停止`);
+        }
+      }, 5000); // 等待 5 秒后检查
+    } catch (error) {
+      console.error(`${service.name} 停止失败:`, error);
+    }
   }
 }
 
 // 停止所有服务
 function stopAll() {
-  services.forEach(stopService);
+  services.forEach(service => {
+    stopService(service);
+  });
   clearInterval(monitorState.intervalId);
   monitorState.isMonitoring = false;
 }
