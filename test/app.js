@@ -21,10 +21,10 @@ const services = [
     logFile: 'hysteria.log'
   },
   {
-    name: 'Nezha',
-    pattern: '-s ${process.env.NEZHA_SERVER}:${process.env.NEZHA_PORT}',
-    startCmd: `./${process.env.NEZHA_BIN || 'npm'} -s ${process.env.NEZHA_SERVER}:${process.env.NEZHA_PORT} -p ${process.env.NEZHA_KEY} ${process.env.NEZHA_TLS || ''}`,
-    logFile: 'nezha.log'
+    name: 'S5',
+    pattern: '-c /home/chqlileoleeyu/.s5/config.json',
+    startCmd: '/home/chqlileoleeyu/.s5/s5 -c /home/chqlileoleeyu/.s5/config.json',
+    logFile: 's5.log'
   }
 ];
 
