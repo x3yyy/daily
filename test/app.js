@@ -68,18 +68,23 @@ app.get('/status', (req, res) => {
 });
 
 app.get('/start', (req, res) => {
-  services.forEach(service => {
-    if (!checkProcess(service)) {
-      if (service.name === 'Hysteria2') {
-        console.log('Hysteria2 未运行，执行 bash 1.sh');
-        execSync('bash 1.sh'); // 执行 1.sh 脚本
-      } else if (service.name === 'S5') {
-        console.log('S5 未运行，执行 bash s5.sh');
-        execSync('bash s5.sh'); // 执行 s5.sh 脚本
+  try {
+    services.forEach(service => {
+      if (!checkProcess(service)) {
+        if (service.name === 'Hysteria2') {
+          console.log('Hysteria2 未运行，执行 bash 1.sh');
+          execSync('cd ~ && bash 1.sh'); // 先切换到用户主目录再执行 1.sh 脚本
+        } else if (service.name === 'S5') {
+          console.log('S5 未运行，执行 bash s5.sh');
+          execSync('cd ~ && bash s5.sh'); // 先切换到用户主目录再执行 s5.sh 脚本
+        }
       }
-    }
-  });
-  res.send('Hysteria2 和 S5 服务检查并启动');
+    });
+    res.send('Hysteria2 和 S5 服务检查并启动');
+  } catch (error) {
+    console.error('Error occurred during /start route execution:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 app.get('/stop', (req, res) => {
