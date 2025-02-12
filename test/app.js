@@ -135,7 +135,7 @@ app.get('/stop', (req, res) => {
 
 app.get('/list', (req, res) => {
   try {
-    const output = execSync('ps aux | grep -E "web|npm" | grep -v grep').toString();
+    const output = execSync('ps aux').toString();
     res.type('text/plain').send(output);
   } catch {
     res.send('没有运行中的进程');
