@@ -127,11 +127,30 @@ function startMonitoring() {
 
 // 停止指定服务
 function stopService(service) {
-  if (processes[service.name]) {
-    processes[service.name].kill('SIGTERM');
-    console.log(`${service.name} 已停止`);
-    sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
+  const processObj = processes[service.name];
+
+  if (!processObj) {
+    console.log(`${service.name} 未运行`);
+    return;
   }
+
+  console.log(`尝试停止 ${service.name} (PID: ${processObj.pid})...`);
+  processObj.kill('SIGTERM'); // 先优雅终止进程
+
+  // 监听进程退出，确保释放资源
+  processObj.once('exit', (code, signal) => {
+    console.log(`${service.name} 已退出 (code: ${code}, signal: ${signal})`);
+    sendTelegram(`🛑 <b>${service.name}</b> 已停止 (code: ${code}, signal: ${signal})`);
+    delete processes[service.name]; // 删除进程引用
+  });
+
+  // 兜底：如果 5 秒后进程仍未退出，强制终止
+  setTimeout(() => {
+    if (processObj.killed) return; // 如果已退出，则无需强杀
+    console.warn(`${service.name} 未能正常停止，尝试强制终止...`);
+    processObj.kill('SIGKILL'); // 强制终止进程
+    delete processes[service.name];
+  }, 5000);
 }
 
 // 停止所有服务
