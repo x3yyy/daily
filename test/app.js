@@ -17,7 +17,7 @@ let processes = {};
 // 进程配置
 const services = [
   {
-    name: 'hy2',
+    name: 'Hysteria2',
     pattern: 'server config.yaml',
     startCmd: `./${process.env.HYSTERIA_BIN || 'web'} server config.yaml`,
     logFile: 'hysteria.log'
