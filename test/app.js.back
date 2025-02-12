@@ -67,25 +67,43 @@ function checkProcess(service) {
 
 // 启动单个服务
 function startService(service, retries = 3) {
-  try {
+  return new Promise((resolve, reject) => {
     const logStream = fs.createWriteStream(`${logDir}/${service.logFile}`, { flags: 'a' });
     const child = spawn(service.startCmd, {
       shell: true,
       stdio: ['ignore', logStream, logStream]
     });
 
-    processes[service.name] = child; // 确保更新 processes
+    processes[service.name] = child; // 记录进程
+
+    child.on('error', (error) => {
+      console.error(`${service.name} 启动失败:`, error);
+      sendTelegram(`🔴 <b>${service.name}</b> 启动失败\n错误: <code>${error.message}</code>`);
+      retryOrFail(service, retries, resolve, reject);
+    });
+
+    child.on('exit', (code) => {
+      if (code !== 0) {
+        console.warn(`${service.name} 退出，状态码: ${code}`);
+        sendTelegram(`⚠️ <b>${service.name}</b> 进程退出\n状态码: <code>${code}</code>`);
+        retryOrFail(service, retries, resolve, reject);
+      }
+    });
+
     console.log(`${service.name} 启动成功 PID: ${child.pid}`);
     sendTelegram(`🟢 <b>${service.name}</b> 启动成功\nPID: <code>${child.pid}</code>`);
-    return true;
-  } catch (error) {
-    console.error(`${service.name} 启动失败:`, error);
-    sendTelegram(`🔴 <b>${service.name}</b> 启动失败\n错误: <code>${error.message}</code>`);
-    if (retries > 0) {
-      console.log(`重试启动 ${service.name}...`);
-      return startService(service, retries - 1);
-    }
-    return false;
+    resolve(true);
+  });
+}
+
+function retryOrFail(service, retries, resolve, reject) {
+  if (retries > 0) {
+    console.log(`重试启动 ${service.name} (${retries} 次剩余)...`);
+    setTimeout(() => startService(service, retries - 1).then(resolve).catch(reject), 2000);
+  } else {
+    console.error(`${service.name} 启动失败，已用尽所有重试次数`);
+    sendTelegram(`❌ <b>${service.name}</b> 启动失败，已用尽所有重试次数`);
+    reject(false);
   }
 }
 
