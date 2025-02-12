@@ -82,17 +82,23 @@ app.get('/start', async (req, res) => {
         }
 
         if (script) {
-          await new Promise((resolve, reject) => {
-            exec(`cd ~ && bash ${script}`, (error, stdout, stderr) => {
-              if (error) {
-                console.error(`Error executing ${script}:`, stderr);
-                reject(error);
-              } else {
-                console.log(`Successfully executed ${script}:`, stdout);
-                resolve();
-              }
+          try {
+            await new Promise((resolve, reject) => {
+              exec(`cd ~ && bash ${script}`, (error, stdout, stderr) => {
+                if (error) {
+                  console.error(`Error executing ${script}:`, stderr);
+                  reject(error);
+                } else {
+                  console.log(`Successfully executed ${script}:`, stdout);
+                  resolve();
+                }
+              });
             });
-          });
+          } catch (error) {
+            console.error(`Failed to start ${service.name}:`, error);
+            res.status(500).send(`Failed to start ${service.name}`);
+            return; // 结束请求处理
+          }
         }
       }
     }
