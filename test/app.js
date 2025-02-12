@@ -5,7 +5,7 @@ const { execSync, spawn } = require('child_process');
 const fs = require('fs');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 30000;
 
 // 全局状态变量
 let isMonitoring = false;
