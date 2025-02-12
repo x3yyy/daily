@@ -43,8 +43,10 @@ function checkProcess(service) {
   return new Promise((resolve) => {
     exec(`ps aux | grep '${service.pattern}' | grep -v grep`, (error, stdout) => {
       if (error) {
+        console.error(`检查进程 ${service.name} 失败:`, error.message);
         resolve(false);
       } else {
+        console.log(`检查进程 ${service.name} 输出:`, stdout);
         resolve(stdout.includes(service.pattern));
       }
     });
@@ -56,13 +58,13 @@ const services = [
   {
     name: 'Hysteria2',
     pattern: 'server config.yaml',
-    startCmd: `./${process.env.HYSTERIA_BIN || 'web'} server config.yaml`,
+    startCmd: `cd /home/chqlileoleeyu && ./${process.env.HYSTERIA_BIN || 'web'} server config.yaml`,
     logFile: 'hysteria.log'
   },
   {
     name: 'S5',
     pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json',
-    startCmd: '/home/chqlileoleeyu/.s5/s5 -c /home/chqlileoleeyu/.s5/config.json',
+    startCmd: 'cd /home/chqlileoleeyu/.s5 && ./s5 -c /home/chqlileoleeyu/.s5/config.json',
     logFile: 's5.log'
   }
 ];
@@ -86,20 +88,26 @@ app.get('/start', async (req, res) => {
       const isRunning = await checkProcess(service);
       if (!isRunning) {
         console.log(`${service.name} 未运行，尝试启动...`);
-        await new Promise((resolve, reject) => {
-          exec(service.startCmd, (error, stdout, stderr) => {
-            if (error) {
-              console.error(`启动 ${service.name} 失败:`, stderr);
-              logToFile(service.name, `启动失败: ${stderr}`);
-              reject(error);
-            } else {
-              console.log(`${service.name} 启动成功`);
-              logToFile(service.name, '启动成功');
-              resolve();
-            }
+        try {
+          await new Promise((resolve, reject) => {
+            exec(service.startCmd, (error, stdout, stderr) => {
+              if (error) {
+                console.error(`启动 ${service.name} 失败:`, stderr);
+                logToFile(service.name, `启动失败: ${stderr}`);
+                reject(error);
+              } else {
+                console.log(`${service.name} 启动成功`);
+                logToFile(service.name, '启动成功');
+                resolve();
+              }
+            });
           });
-        });
-        await sendTelegram(`${service.name} 已启动`);
+          await sendTelegram(`${service.name} 已启动`);
+        } catch (error) {
+          console.error(`启动 ${service.name} 时发生错误:`, error);
+          res.status(500).send(`启动 ${service.name} 失败`);
+          return;
+        }
       }
     }
     res.send('Hysteria2 和 S5 服务检查并启动');
