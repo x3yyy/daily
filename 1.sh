@@ -259,7 +259,7 @@ cat << EOF
   fast-open: true
 EOF
 echo -e "\n\e[1;35m节点订阅链接: https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log  适用于V2ranN/Nekobox/Karing/小火箭/sterisand/Loon 等\033[0m\n"
-rm -rf config.yaml fake_useragent_0.2.0.json
+#rm -rf config.yaml fake_useragent_0.2.0.json
 install_keepalive
 echo -e "\e[1;35m老王serv00|CT8单协议hysteria2无交互一键安装脚本\e[0m"
 echo -e "\e[1;35m脚本地址：https://github.com/eooce/sing-box\e[0m"
