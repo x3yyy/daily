@@ -49,6 +49,7 @@ async function sendTelegram(message) {
 function checkProcess(service) {
   try {
     const output = execSync(`ps aux | grep -v grep | grep '${service.pattern}'`).toString();
+    console.log(output); // 输出进程匹配信息，便于调试
     return output.includes(service.pattern);
   } catch {
     return false;
@@ -58,6 +59,7 @@ function checkProcess(service) {
 // 启动单个服务
 function startService(service) {
   try {
+    console.log(`正在启动服务: ${service.name}`); // 输出启动日志
     const logStream = fs.createWriteStream(service.logFile, { flags: 'a' });
     const child = spawn(service.startCmd.split(' ')[0], 
                       service.startCmd.split(' ').slice(1), 
@@ -92,18 +94,15 @@ function startMonitoring() {
   sendTelegram('🚀 保活监控系统已启动');
 }
 
-// 停止指定服务
-function stopService(service) {
-  if (processes[service.name]) {
-    processes[service.name].kill();
-    console.log(`${service.name} 已停止`);
-    sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
-  }
-}
-
 // 停止所有服务
 function stopAll() {
-  services.forEach(stopService);
+  services.forEach(service => {
+    if (processes[service.name]) {
+      processes[service.name].kill();
+      console.log(`${service.name} 已停止`);
+      sendTelegram(`🛑 <b>${service.name}</b> 已强制停止`);
+    }
+  });
   clearInterval(intervalId);
   isMonitoring = false;
 }
@@ -120,20 +119,23 @@ app.get('/status', (req, res) => {
 
 app.get('/start', (req, res) => {
   services.forEach(service => {
-    if (!checkProcess(service)) startService(service);
+    if (!checkProcess(service)) {
+      console.log(`${service.name} 未运行，启动中...`);
+      startService(service); // 确保启动
+    }
   });
-  startMonitoring();
+  startMonitoring(); // 启动监控
   res.send('保活服务已启动');
 });
 
 app.get('/stop', (req, res) => {
-  services.forEach(stopService);
-  res.send('Hysteria2 和 S5 服务已停止');
+  stopAll(); // 停止所有服务
+  res.send('所有服务已停止');
 });
 
 app.get('/list', (req, res) => {
   try {
-    const output = execSync('ps aux').toString();
+    const output = execSync('ps aux | grep -E "web|npm" | grep -v grep').toString();
     res.type('text/plain').send(output);
   } catch {
     res.send('没有运行中的进程');
