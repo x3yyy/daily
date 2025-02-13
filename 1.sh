@@ -52,9 +52,13 @@ check_binexec_and_port () {
           fi
       done
 
+      # 端口调整完成，提醒用户重新连接SSH并重新执行脚本
       echo -e "\e[1;32m端口调整完成, 请重新连接SSH并重新执行脚本\e[0m"
+
+      # 终止当前SSH连接
       devil binexec on >/dev/null 2>&1
-      kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
+      kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1  # 杀死当前进程的父进程，断开SSH连接
+
   else
       # 如果有可用的UDP端口
       if [[ $udp_ports -ge 1 ]]; then
