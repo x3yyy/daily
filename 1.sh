@@ -93,7 +93,7 @@ run() {
     sleep 1
     pgrep -x "hy2" > /dev/null && echo -e "\e[1;32mhy2 is running\e[0m" || { echo -e "\e[1;35mhy2 is not running, restarting...\e[0m"; pkill -f "hy2" && nohup "$DOWNLOAD_DIR/hy2" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32mhy2 restarted\e[0m"; }
   fi
-  rm -rf "$DOWNLOAD_DIR/hy2"
+#  rm -rf "$DOWNLOAD_DIR/hy2"
 }
 run
 
@@ -108,7 +108,7 @@ hysteria2://$UUID@$HOST_IP:$PORT/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-$NAME
 EOF
 cat ${FILE_PATH}/${SUB_TOKEN}_hy2.log
 echo -e "\e[1;35m节点订阅链接: https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log\033[0m\n"
-rm -rf config.yaml
+#rm -rf config.yaml
 echo -e "\e[1;35m老王serv00|CT8单协议hysteria2无交互一键安装脚本\e[0m"
 echo -e "\e[1;35m脚本地址：https://github.com/eooce/sing-box\e[0m"
 echo -e "\e[1;35m反馈论坛：https://bbs.vps8.me\e[0m"
