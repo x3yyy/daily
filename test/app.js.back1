@@ -56,10 +56,10 @@ function checkProcess(service) {
 // 进程配置
 const services = [
   {
-    name: 'Hysteria2',
-    pattern: 'server config.yaml',
-    startCmd: `cd /home/chqlileoleeyu && ./${process.env.HYSTERIA_BIN || 'web'} server config.yaml`,
-    logFile: 'hysteria.log'
+  name: 'Hysteria2', // 服务名
+  pattern: '././hy2 server config.yaml', // 匹配模式
+  startCmd: 'cd /home/chqlileoleeyu && ./hy2 server config.yaml', // 启动命令
+  logFile: 'hysteria2.log' // 日志文件
   },
   {
     name: 'S5',
