@@ -73,15 +73,15 @@ check_binexec_and_port () {
   fi
 
   # 设置环境变量
-  export UDP_PORT=$udp_port1
   export SOCKS5_PORT=$tcp_port1
 }
 
 check_binexec_and_port
 
 socks5_config(){
-  SOCKS5_USER="lee"        # 固定用户名
-  SOCKS5_PASS="LcQ14167374"    # 固定密码
+
+  SOCKS5_USER=$(generate_random_name)
+  SOCKS5_PASS=$(generate_random_name)
 
 # config.js文件
   cat > ${FILE_PATH}/config.json << EOF
