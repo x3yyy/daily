@@ -2,9 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const { exec } = require('child_process');
-
 const app = express();
 const port = process.env.PORT || 30000;
+const username = process.env.USERNAME; // 获取环境变量 USERNAME
 
 // Telegram通知函数
 async function sendTelegram(message) {
@@ -99,16 +99,25 @@ app.get('/start', async (req, res) => {
   }
 });
 
+
 app.get('/stop', (req, res) => {
-  services.forEach(service => {
-    const processObj = processes[service.name];
-    if (processObj) {
-      console.log(`尝试停止 ${service.name} (PID: ${processObj.pid})...`);
-      processObj.kill('SIGTERM');
-      delete processes[service.name];
+  if (!username) {
+    return res.status(400).send('未设置 USERNAME 环境变量');
+  }
+
+  // 执行 pkill 命令来停止服务
+  exec(`pkill -kill -u ${username}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`执行错误: ${error}`);
+      return res.status(500).send('停止服务失败');
     }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).send('停止服务失败');
+    }
+    console.log(`stdout: ${stdout}`);
+    res.send('Hysteria2 和 S5 服务已停止');
   });
-  res.send('Hysteria2 和 S5 服务已停止');
 });
 
 app.get('/list', (req, res) => {
