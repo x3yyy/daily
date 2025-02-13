@@ -64,7 +64,7 @@ const services = [
   {
     name: 'S5',
     pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json',
-    startCmd: 'cd /home/chqlileoleeyu/.s5 && ./s5 -c /home/chqlileoleeyu/.s5/config.json',
+    startCmd: 'nohup ~/.s5/s5 -c ~/.s5/config.json >/dev/null 2>&1 &',
     logFile: 's5.log'
   }
 ];
