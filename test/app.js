@@ -43,7 +43,7 @@ const services = [
   {
     name: 'Hysteria2',
     pattern: 'server config.yaml',
-    startCmd: `cd /home/chqlileoleeyu && nohup ./hy2 server config.yaml >/dev/null 2>&1 &`,
+    startCmd: `cd ~ && nohup ./hy2 server config.yaml >/dev/null 2>&1 &`,
   },
   {
     name: 'S5',
