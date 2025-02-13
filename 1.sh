@@ -15,24 +15,23 @@ rm -rf "$WORKDIR" && mkdir -p "$WORKDIR" "$FILE_PATH" && chmod 777 "$WORKDIR" "$
 bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
 
 check_binexec_and_port () {
+  # 获取所有端口列表
   port_list=$(devil port list)
+
+  # 获取当前可用的TCP和UDP端口数
   tcp_ports=$(echo "$port_list" | grep -c "tcp")
   udp_ports=$(echo "$port_list" | grep -c "udp")
 
-  if [[ $udp_ports -lt 1 ]]; then
-      echo -e "\e[1;91m没有可用的UDP端口,正在调整...\e[0m"
+  # 如果没有任何可用端口（TCP和UDP都没有）
+  if [[ $tcp_ports -lt 1 && $udp_ports -lt 1 ]]; then
+      echo -e "\e[1;91m没有可用的TCP和UDP端口, 正在调整...\e[0m"
 
-      if [[ $tcp_ports -ge 3 ]]; then
-          tcp_port_to_delete=$(echo "$port_list" | awk '/tcp/ {print $1}' | head -n 1)
-          devil port del tcp $tcp_port_to_delete
-          echo -e "\e[1;32m已删除TCP端口: $tcp_port_to_delete\e[0m"
-      fi
-
+      # 尝试为UDP端口申请一个新的端口
       while true; do
-          udp_port=$(shuf -i 10000-65535 -n 1)
+          udp_port=$(shuf -i 10000-65535 -n 1)  # 随机选择一个UDP端口
           result=$(devil port add udp $udp_port 2>&1)
           if [[ $result == *"succesfully"* ]]; then
-              echo -e "\e[1;32m已添加UDP端口: $udp_port"
+              echo -e "\e[1;32m已成功添加UDP端口: $udp_port"
               udp_port1=$udp_port
               break
           else
@@ -40,21 +39,43 @@ check_binexec_and_port () {
           fi
       done
 
-      echo -e "\e[1;32m端口已调整完成, 将断开SSH连接, 请重新连接SSH并重新执行脚本\e[0m"
+      # 尝试为TCP端口申请一个新的端口
+      while true; do
+          tcp_port=$(shuf -i 10000-65535 -n 1)  # 随机选择一个TCP端口
+          result=$(devil port add tcp $tcp_port 2>&1)
+          if [[ $result == *"succesfully"* ]]; then
+              echo -e "\e[1;32m已成功添加TCP端口: $tcp_port"
+              tcp_port1=$tcp_port
+              break
+          else
+              echo -e "\e[1;33m端口 $tcp_port 不可用，尝试其他端口...\e[0m"
+          fi
+      done
+
+      echo -e "\e[1;32m端口调整完成, 请重新连接SSH并重新执行脚本\e[0m"
       devil binexec on >/dev/null 2>&1
       kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1
   else
-      udp_ports=$(echo "$port_list" | awk '/udp/ {print $1}')
-      udp_port1=$(echo "$udp_ports" | sed -n '1p')
+      # 如果有可用的UDP端口
+      if [[ $udp_ports -ge 1 ]]; then
+          udp_ports=$(echo "$port_list" | awk '/udp/ {print $1}')
+          udp_port1=$(echo "$udp_ports" | sed -n '1p')  # 获取第一个UDP端口
+          echo -e "\e[1;35m当前UDP端口: $udp_port1\e[0m"
+      fi
 
-      echo -e "\e[1;35m当前UDP端口: $udp_port1\e[0m"
+      # 如果有可用的TCP端口
+      if [[ $tcp_ports -ge 1 ]]; then
+          tcp_ports=$(echo "$port_list" | awk '/tcp/ {print $1}')
+          tcp_port1=$(echo "$tcp_ports" | sed -n '1p')  # 获取第一个TCP端口
+          echo -e "\e[1;35m当前TCP端口: $tcp_port1\e[0m"
+      fi
   fi
 
+  # 设置环境变量
   export PORT=$udp_port1
 }
 check_binexec_and_port
 
-clear
 echo -e "\e[1;35m正在安装中,请稍等...\e[0m"
 ARCH=$(uname -m) && DOWNLOAD_DIR="." && mkdir -p "$DOWNLOAD_DIR" && FILE_INFO=()
 if [ "$ARCH" == "arm" ] || [ "$ARCH" == "arm64" ] || [ "$ARCH" == "aarch64" ]; then
