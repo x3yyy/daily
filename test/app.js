@@ -17,15 +17,9 @@ let processes = {};
 // 进程配置
 const services = [
   {
-    name: 'Hysteria2',
-    pattern: 'server config.yaml',
-    startCmd: `./${process.env.HYSTERIA_BIN || 'web'} server config.yaml`,
-    logFile: 'hysteria.log'
-  },
-  {
     name: 'S5',
-    pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json', // 更精确的匹配模式
-    startCmd: '/home/chqlileoleeyu/.s5/s5 -c /home/chqlileoleeyu/.s5/config.json',
+    pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json',
+    startCmd: 'cd /home/chqlileoleeyu/.s5 && ./s5 -c /home/chqlileoleeyu/.s5/config.json',
     logFile: 's5.log'
   }
 ];
