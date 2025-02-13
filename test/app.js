@@ -2,24 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const { exec } = require('child_process');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 30000;
-
-// 创建日志目录
-const logDir = './logs';
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir);
-}
-
-// 日志函数
-function logToFile(serviceName, message) {
-  const logFilePath = path.join(logDir, `${serviceName}.log`);
-  const timestamp = new Date().toISOString();
-  fs.appendFileSync(logFilePath, `[${timestamp}] ${message}\n`);
-}
 
 // Telegram通知函数
 async function sendTelegram(message) {
@@ -59,13 +44,11 @@ const services = [
     name: 'Hysteria2',
     pattern: 'server config.yaml',
     startCmd: `cd /home/chqlileoleeyu && nohup ./hy2 server config.yaml >/dev/null 2>&1 &`,
-    logFile: 'hysteria.log'
   },
   {
     name: 'S5',
     pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json',
     startCmd: 'nohup ~/.s5/s5 -c ~/.s5/config.json >/dev/null 2>&1 &',
-    logFile: 's5.log'
   }
 ];
 
@@ -93,11 +76,10 @@ app.get('/start', async (req, res) => {
             exec(service.startCmd, (error, stdout, stderr) => {
               if (error) {
                 console.error(`启动 ${service.name} 失败:`, stderr);
-                logToFile(service.name, `启动失败: ${stderr}`);
                 reject(error);
               } else {
                 console.log(`${service.name} 启动成功`);
-                logToFile(service.name, '启动成功');
+                processes[service.name] = stdout;  // 记录进程
                 resolve();
               }
             });
@@ -123,7 +105,6 @@ app.get('/stop', (req, res) => {
     if (processObj) {
       console.log(`尝试停止 ${service.name} (PID: ${processObj.pid})...`);
       processObj.kill('SIGTERM');
-      logToFile(service.name, '服务已停止');
       delete processes[service.name];
     }
   });
