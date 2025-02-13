@@ -1,7 +1,6 @@
 #!/bin/bash
 export LC_ALL=C
-export UUID=${UUID:-'fc44fe6a-f083-4591-9c03-f8d61dc3907f'} 
-export NEZHA_SERVER=${NEZHA_SERVER:-''}      
+export UUID=${UUID:-${MD5_HASH:0:8}-${MD5_HASH:8:4}-4${MD5_HASH:12:3}-$(echo $((RANDOM % 4 + 8)) | head -c 1)${MD5_HASH:15:3}-${MD5_HASH:19:12}}
 export NEZHA_PORT=${NEZHA_PORT:-'5555'}             
 export NEZHA_KEY=${NEZHA_KEY:-''}                
 export PORT=${PORT:-''} 
