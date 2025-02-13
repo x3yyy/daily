@@ -59,6 +59,9 @@ check_binexec_and_port () {
       devil binexec on >/dev/null 2>&1
       kill -9 $(ps -o ppid= -p $$) >/dev/null 2>&1  # 杀死当前进程的父进程，断开SSH连接
 
+      # 退出当前的 shell 会话，确保 SSH 会话断开
+      exit 0
+
   else
       # 如果有可用的UDP端口
       if [[ $udp_ports -ge 1 ]]; then
