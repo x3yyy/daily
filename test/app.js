@@ -17,6 +17,12 @@ let processes = {};
 // 进程配置
 const services = [
   {
+   name: 'Hysteria2', // 服务名
+   pattern: '././hy2 server config.yaml', // 匹配模式
+   startCmd: 'cd /home/chqlileoleeyu && ./hy2 server config.yaml', // 启动命令
+   logFile: 'hysteria2.log' // 日志文件
+  },
+  {
     name: 'S5',
     pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json',
     startCmd: 'cd /home/chqlileoleeyu/.s5 && ./s5 -c /home/chqlileoleeyu/.s5/config.json',
