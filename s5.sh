@@ -74,10 +74,11 @@ check_binexec_and_port () {
 
   # 设置环境变量
   export UDP_PORT=$udp_port1
-  export TCP_PORT=$tcp_port1
+  export SOCKS5_PORT=$tcp_port1
 }
 
 check_binexec_and_port
+
 socks5_config(){
   SOCKS5_PORT="6843"          # 固定端口号
   SOCKS5_USER="lee"        # 固定用户名
