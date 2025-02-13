@@ -69,6 +69,20 @@ check_binexec_and_port () {
           udp_ports=$(echo "$port_list" | awk '/udp/ {print $1}')
           udp_port1=$(echo "$udp_ports" | sed -n '1p')  # 获取第一个UDP端口
           echo -e "\e[1;35m当前UDP端口: $udp_port1\e[0m"
+      else
+          # 如果没有UDP端口，申请一个新的UDP端口
+          echo -e "\e[1;91m没有可用的UDP端口，正在申请...\e[0m"
+          while true; do
+              udp_port=$(shuf -i 10000-65535 -n 1)  # 随机选择一个UDP端口
+              result=$(devil port add udp $udp_port 2>&1)
+              if [[ $result == *"succesfully"* ]]; then
+                  echo -e "\e[1;32m已成功添加UDP端口: $udp_port"
+                  udp_port1=$udp_port
+                  break
+              else
+                  echo -e "\e[1;33m端口 $udp_port 不可用，尝试其他端口...\e[0m"
+              fi
+          done
       fi
 
       # 如果有可用的TCP端口
@@ -76,11 +90,25 @@ check_binexec_and_port () {
           tcp_ports=$(echo "$port_list" | awk '/tcp/ {print $1}')
           tcp_port1=$(echo "$tcp_ports" | sed -n '1p')  # 获取第一个TCP端口
           echo -e "\e[1;35m当前TCP端口: $tcp_port1\e[0m"
+      else
+          # 如果没有TCP端口，申请一个新的TCP端口
+          echo -e "\e[1;91m没有可用的TCP端口，正在申请...\e[0m"
+          while true; do
+              tcp_port=$(shuf -i 10000-65535 -n 1)  # 随机选择一个TCP端口
+              result=$(devil port add tcp $tcp_port 2>&1)
+              if [[ $result == *"succesfully"* ]]; then
+                  echo -e "\e[1;32m已成功添加TCP端口: $tcp_port"
+                  tcp_port1=$tcp_port
+                  break
+              else
+                  echo -e "\e[1;33m端口 $tcp_port 不可用，尝试其他端口...\e[0m"
+              fi
+          done
       fi
   fi
 
   # 设置环境变量
-  export PORT_UDP=$udp_port1
+  export PORT=$udp_port1
   export SOCKS5_PORT=$tcp_port1
 }
 check_binexec_and_port
