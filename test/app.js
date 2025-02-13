@@ -1,9 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
-const { execSync } = require('child_process');
 const { exec } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 30000;
@@ -12,6 +12,13 @@ const port = process.env.PORT || 30000;
 const logDir = './logs';
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
+}
+
+// 日志函数
+function logToFile(serviceName, message) {
+  const logFilePath = path.join(logDir, `${serviceName}.log`);
+  const timestamp = new Date().toISOString();
+  fs.appendFileSync(logFilePath, `[${timestamp}] ${message}\n`);
 }
 
 // Telegram通知函数
@@ -33,14 +40,17 @@ async function sendTelegram(message) {
 
 // 进程检查函数
 function checkProcess(service) {
-  try {
-    const output = execSync(`ps aux | grep '${service.pattern}' | grep -v grep`).toString();
-    console.log(`检查进程 ${service.name}，输出:`, output); // 调试日志
-    console.log(`匹配模式: ${service.pattern}`); // 调试日志
-    return output.includes(service.pattern);
-  } catch {
-    return false;
-  }
+  return new Promise((resolve) => {
+    exec(`ps aux | grep '${service.pattern}' | grep -v grep`, (error, stdout) => {
+      if (error) {
+        console.error(`检查进程 ${service.name} 失败:`, error.message);
+        resolve(false);
+      } else {
+        console.log(`检查进程 ${service.name} 输出:`, stdout);
+        resolve(stdout.includes(service.pattern));
+      }
+    });
+  });
 }
 
 // 进程配置
@@ -48,63 +58,61 @@ const services = [
   {
     name: 'Hysteria2',
     pattern: 'server config.yaml',
-    startCmd: `./${process.env.HYSTERIA_BIN || 'web'} server config.yaml`,
+    startCmd: `cd /home/chqlileoleeyu && ./${process.env.HYSTERIA_BIN || 'web'} server config.yaml`,
     logFile: 'hysteria.log'
   },
   {
     name: 'S5',
     pattern: 's5 -c /home/chqlileoleeyu/.s5/config.json',
-    startCmd: '/home/chqlileoleeyu/.s5/s5 -c /home/chqlileoleeyu/.s5/config.json',
+    startCmd: 'cd /home/chqlileoleeyu/.s5 && ./s5 -c /home/chqlileoleeyu/.s5/config.json',
     logFile: 's5.log'
   }
 ];
 
+// 存储进程对象
+const processes = {};
+
 // Express路由
-app.get('/status', (req, res) => {
-  const status = services.map(service => ({
-    name: service.name,
-    running: checkProcess(service)
-  }));
+app.get('/status', async (req, res) => {
+  const status = [];
+  for (const service of services) {
+    const isRunning = await checkProcess(service);
+    status.push({ name: service.name, running: isRunning });
+  }
   res.json({ services: status });
 });
 
 app.get('/start', async (req, res) => {
   try {
     for (const service of services) {
-      if (!checkProcess(service)) {
-        let script;
-        if (service.name === 'Hysteria2') {
-          script = '1.sh';
-          console.log('Hysteria2 未运行，执行 bash 1.sh');
-        } else if (service.name === 'S5') {
-          script = 's5.sh';
-          console.log('S5 未运行，执行 bash s5.sh');
-        }
-
-        if (script) {
-          try {
-            await new Promise((resolve, reject) => {
-              exec(`cd ~ && bash ${script}`, (error, stdout, stderr) => {
-                if (error) {
-                  console.error(`Error executing ${script}:`, stderr);
-                  reject(error);
-                } else {
-                  console.log(`Successfully executed ${script}:`, stdout);
-                  resolve();
-                }
-              });
+      const isRunning = await checkProcess(service);
+      if (!isRunning) {
+        console.log(`${service.name} 未运行，尝试启动...`);
+        try {
+          await new Promise((resolve, reject) => {
+            exec(service.startCmd, (error, stdout, stderr) => {
+              if (error) {
+                console.error(`启动 ${service.name} 失败:`, stderr);
+                logToFile(service.name, `启动失败: ${stderr}`);
+                reject(error);
+              } else {
+                console.log(`${service.name} 启动成功`);
+                logToFile(service.name, '启动成功');
+                resolve();
+              }
             });
-          } catch (error) {
-            console.error(`Failed to start ${service.name}:`, error);
-            res.status(500).send(`Failed to start ${service.name}`);
-            return; // 结束请求处理
-          }
+          });
+          await sendTelegram(`${service.name} 已启动`);
+        } catch (error) {
+          console.error(`启动 ${service.name} 时发生错误:`, error);
+          res.status(500).send(`启动 ${service.name} 失败`);
+          return;
         }
       }
     }
     res.send('Hysteria2 和 S5 服务检查并启动');
   } catch (error) {
-    console.error('Error occurred during /start route execution:', error);
+    console.error('启动服务时发生错误:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -114,19 +122,22 @@ app.get('/stop', (req, res) => {
     const processObj = processes[service.name];
     if (processObj) {
       console.log(`尝试停止 ${service.name} (PID: ${processObj.pid})...`);
-      processObj.kill('SIGTERM'); // 先优雅终止进程
+      processObj.kill('SIGTERM');
+      logToFile(service.name, '服务已停止');
+      delete processes[service.name];
     }
   });
   res.send('Hysteria2 和 S5 服务已停止');
 });
 
 app.get('/list', (req, res) => {
-  try {
-    const output = execSync('ps aux').toString();
-    res.type('text/plain').send(output);
-  } catch {
-    res.send('没有运行中的进程');
-  }
+  exec('ps aux', (error, stdout) => {
+    if (error) {
+      res.send('无法获取进程列表');
+    } else {
+      res.type('text/plain').send(stdout);
+    }
+  });
 });
 
 // 启动服务器
