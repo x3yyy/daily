@@ -66,14 +66,19 @@ else
     exit 1
 fi
 declare -A FILE_MAP
-generate_random_name() {
-    local chars=abcdefghijklmnopqrstuvwxyz1234567890
-    local name=""
-    for i in {1..6}; do
-        name="$name${chars:RANDOM%${#chars}:1}"
-    done
-    echo "$name"
+
+# 固定文件名逻辑
+generate_fixed_name() {
+    local type=$1  # 传入文件类型，例如 "web" 或 "npm"
+    if [[ "$type" == "web" ]]; then
+        echo "hy2"  # 将 web 类型的文件固定命名为 hy2
+    elif [[ "$type" == "npm" ]]; then
+        echo "nezha"  # 将 npm 类型的文件固定命名为 nezha
+    else
+        echo "unknown"  # 其他情况命名为 unknown
+    fi
 }
+
 download_file() {
     local URL=$1
     local NEW_FILENAME=$2
@@ -89,15 +94,17 @@ download_file() {
         exit 1
     fi
 }
+
 for entry in "${FILE_INFO[@]}"; do
     URL=$(echo "$entry" | cut -d ' ' -f 1)
-    RANDOM_NAME=$(generate_random_name)
-    NEW_FILENAME="$DOWNLOAD_DIR/$RANDOM_NAME"
+    TYPE=$(echo "$entry" | cut -d ' ' -f 2)  # 获取文件类型，例如 "web" 或 "npm"
+    FIXED_NAME=$(generate_fixed_name "$TYPE")  # 根据类型生成固定文件名
+    NEW_FILENAME="$DOWNLOAD_DIR/$FIXED_NAME"
 
     download_file "$URL" "$NEW_FILENAME"
 
     chmod +x "$NEW_FILENAME"
-    FILE_MAP[$(echo "$entry" | cut -d ' ' -f 2)]="$NEW_FILENAME"
+    FILE_MAP[$TYPE]="$NEW_FILENAME"  # 将类型映射到固定文件名
 done
 wait
 
@@ -208,7 +215,7 @@ EOF
 }
 
 run() {
-  if [ -e "$(basename ${FILE_MAP[npm]})" ]; then
+  if [ -e "${FILE_MAP[npm]}" ]; then
     tlsPorts=("443" "8443" "2096" "2087" "2083" "2053")
     if [[ "${tlsPorts[*]}" =~ "${NEZHA_PORT}" ]]; then
       NEZHA_TLS="--tls"
@@ -217,20 +224,20 @@ run() {
     fi
     if [ -n "$NEZHA_SERVER" ] && [ -n "$NEZHA_PORT" ] && [ -n "$NEZHA_KEY" ]; then
       export TMPDIR=$(pwd)
-      nohup ./"$(basename ${FILE_MAP[npm]})" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 &
+      nohup ./"${FILE_MAP[npm]}" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 &
       sleep 1
-      pgrep -x "$(basename ${FILE_MAP[npm]})" > /dev/null && echo -e "\e[1;32m$(basename ${FILE_MAP[npm]}) is running\e[0m" || { echo -e "\e[1;35m$(basename ${FILE_MAP[npm]}) is not running, restarting...\e[0m"; pkill -f "$(basename ${FILE_MAP[npm]})" && nohup ./"$(basename ${FILE_MAP[npm]})" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32m"$(basename ${FILE_MAP[npm]})" restarted\e[0m"; }
+      pgrep -x "${FILE_MAP[npm]}" > /dev/null && echo -e "\e[1;32m${FILE_MAP[npm]} is running\e[0m" || { echo -e "\e[1;35m${FILE_MAP[npm]} is not running, restarting...\e[0m"; pkill -f "${FILE_MAP[npm]}" && nohup ./"${FILE_MAP[npm]}" -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32m${FILE_MAP[npm]} restarted\e[0m"; }
     else
       echo -e "\e[1;35mNEZHA variable is empty, skipping running\e[0m"
     fi
   fi
 
-  if [ -e "$(basename ${FILE_MAP[web]})" ]; then
-    nohup ./"$(basename ${FILE_MAP[web]})" server config.yaml >/dev/null 2>&1 &
+  if [ -e "${FILE_MAP[web]}" ]; then
+    nohup ./"${FILE_MAP[web]}" server config.yaml >/dev/null 2>&1 &
     sleep 1
-    pgrep -x "$(basename ${FILE_MAP[web]})" > /dev/null && echo -e "\e[1;32m$(basename ${FILE_MAP[web]}) is running\e[0m" || { echo -e "\e[1;35m$(basename ${FILE_MAP[web]}) is not running, restarting...\e[0m"; pkill -f "$(basename ${FILE_MAP[web]})" && nohup ./"$(basename ${FILE_MAP[web]})" server config.yaml >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32m$(basename ${FILE_MAP[web]}) restarted\e[0m"; }
+    pgrep -x "${FILE_MAP[web]}" > /dev/null && echo -e "\e[1;32m${FILE_MAP[web]} is running\e[0m" || { echo -e "\e[1;35m${FILE_MAP[web]} is not running, restarting...\e[0m"; pkill -f "${FILE_MAP[web]}" && nohup ./"${FILE_MAP[web]}" server config.yaml >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32m${FILE_MAP[web]} restarted\e[0m"; }
   fi
-rm -rf "$(basename ${FILE_MAP[web]})" "$(basename ${FILE_MAP[npm]})"
+#  rm -rf "${FILE_MAP[web]}" "${FILE_MAP[npm]}"
 }
 run
 
@@ -260,7 +267,7 @@ cat << EOF
   fast-open: true
 EOF
 echo -e "\n\e[1;35m节点订阅链接: https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log  适用于V2ranN/Nekobox/Karing/小火箭/sterisand/Loon 等\033[0m\n"
-rm -rf config.yaml fake_useragent_0.2.0.json
+#rm -rf config.yaml fake_useragent_0.2.0.json
 install_keepalive
 echo -e "\e[1;35m老王serv00|CT8单协议hysteria2无交互一键安装脚本\e[0m"
 echo -e "\e[1;35m脚本地址：https://github.com/eooce/sing-box\e[0m"
