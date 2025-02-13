@@ -80,6 +80,7 @@ check_binexec_and_port () {
 
   # 设置环境变量
   export PORT=$udp_port1
+  export SOCKS5_PORT=$tcp_port1
 }
 check_binexec_and_port
 
