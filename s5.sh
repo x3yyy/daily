@@ -78,6 +78,15 @@ check_binexec_and_port () {
 
 check_binexec_and_port
 
+generate_random_name() {
+    local chars=abcdefghijklmnopqrstuvwxyz1234567890
+    local name=""
+    for i in {1..8}; do  # 生成8个字符
+        name="$name${chars:RANDOM%${#chars}:1}"
+    done
+    echo "$name"
+}
+
 socks5_config(){
 
   SOCKS5_USER=$(generate_random_name)
