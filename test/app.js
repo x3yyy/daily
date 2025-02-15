@@ -110,7 +110,7 @@ app.get('/start', async (req, res) => {
 
       // 设置响应类型为 text/plain，返回内容
       res.setHeader('Content-Type', 'text/plain');
-      res.send(subscriptionData);
+      res.send(subscriptionData.trim());
 
     } catch (error) {
       console.error('访问订阅链接失败:', error);
