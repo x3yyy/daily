@@ -166,5 +166,5 @@ else
   mkdir -p "$FILE_PATH" || { echo "目录创建失败，权限不足或路径错误。"; exit 1; }
   install_socks5
 fi
-pkill -kill -u $(whoami)
+
 echo "脚本执行完成。致谢：RealNeoMan、k0baya、eooce"
