@@ -239,10 +239,8 @@ TELEGRAM_BOT_TOKEN=${BOT_TOKEN}
 NEZHA_SERVER=${NEZHA_SERVER}
 NEZHA_PORT=${NEZHA_PORT}
 NEZHA_KEY=${NEZHA_KEY}
-APP_PORT=30000  # 替换为serv00分配的端口
 USERNAME=$(whoami)
-S5_BIN=/home/$(whoami)/.s5/s5
-S5_CONFIG=/home/$(whoami)}/.s5/config.json
+FILE_PATH=${FILE_PATH}
 EOF
     devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
     devil www add keep.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
