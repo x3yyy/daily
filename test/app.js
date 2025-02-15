@@ -5,6 +5,8 @@ const { exec } = require('child_process');
 const app = express();
 const port = process.env.PORT || 30000;
 const username = process.env.USERNAME; // 获取环境变量 USERNAME
+const fs = require('fs');
+const path = require('path');
 
 // Telegram通知函数
 async function sendTelegram(message) {
@@ -92,7 +94,15 @@ app.get('/start', async (req, res) => {
         }
       }
     }
-    res.send('Hysteria2 和 S5 服务检查并启动');
+
+    // 读取 hy2.log 并返回内容
+    const logPath = path.join(process.env.FILE_PATH, `${process.env.SUB_TOKEN}_hy2.log`);
+    if (fs.existsSync(logPath)) {
+      const proxyLink = fs.readFileSync(logPath, 'utf-8').trim();
+      res.send(proxyLink);
+    } else {
+      res.status(404).send('未找到 hy2 代理链接');
+    }
   } catch (error) {
     console.error('启动服务时发生错误:', error);
     res.status(500).send('Internal Server Error');
