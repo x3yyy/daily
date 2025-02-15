@@ -99,10 +99,10 @@ app.get('/start', async (req, res) => {
     // 获取环境变量
     const SUB_TOKEN = process.env.SUB_TOKEN;
     const FILE_PATH = process.env.FILE_PATH;
-    const USERNAME = process.env.USERNAME;
+    const USENAME = process.env.USENAME;
 
     // 构建节点订阅链接
-    const subscriptionLink = `https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
+    const subscriptionLink = `https://${USENAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
 
     // 访问节点订阅链接
     try {
