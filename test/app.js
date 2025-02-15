@@ -95,14 +95,17 @@ app.get('/start', async (req, res) => {
       }
     }
 
-    // 读取 hy2.log 并返回内容
-    const logPath = path.join(process.env.FILE_PATH, `${process.env.SUB_TOKEN}_hy2.log`);
-    if (fs.existsSync(logPath)) {
-      const proxyLink = fs.readFileSync(logPath, 'utf-8').trim();
-      res.send(proxyLink);
-    } else {
-      res.status(404).send('未找到 hy2 代理链接');
-    }
+    // 读取 hy2.log 文件内容
+    const logFilePath = path.join(FILE_PATH, `${SUB_TOKEN}_hy2.log`);
+    fs.readFile(logFilePath, 'utf8', (err, data) => {
+      if (err) {
+        console.error('读取 log 文件时发生错误:', err);
+        res.status(500).send('无法读取 log 文件');
+        return;
+      }
+      // 返回 log 文件内容
+      res.send(data);
+    });
   } catch (error) {
     console.error('启动服务时发生错误:', error);
     res.status(500).send('Internal Server Error');
