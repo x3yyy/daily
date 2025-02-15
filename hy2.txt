@@ -1,1 +1,1 @@
-
+hysteria2://d41d8cd9-8f00-4b20-84e9-00998ecf8427@207.180.248.6:7175?security=tls&alpn=h3&insecure=1&sni=www.bing.com#FR-s16-hysteria2
