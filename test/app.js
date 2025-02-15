@@ -101,7 +101,7 @@ app.get('/start', async (req, res) => {
     const USENAME = process.env.USENAME;
 
     // 生成订阅链接
-    const subscriptionLink = `https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
+    const subscriptionLink = `https://${USENAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
 
     // 直接返回文本，而不是重定向
     res.setHeader('Content-Type', 'text/plain');
