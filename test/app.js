@@ -98,20 +98,13 @@ app.get('/start', async (req, res) => {
 
     // 获取环境变量
     const SUB_TOKEN = process.env.SUB_TOKEN;
-    const FILE_PATH = process.env.FILE_PATH;
     const USENAME = process.env.USENAME;
 
     // 构建节点订阅链接
     const subscriptionLink = `https://${USENAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
 
-    // 访问节点订阅链接
-    try {
-      const response = await axios.get(subscriptionLink);
-      res.send(response.data);  // 返回子代理日志内容
-    } catch (error) {
-      console.error('访问节点订阅链接失败:', error);
-      res.status(500).send('无法访问代理日志');
-    }
+    // 重定向到生成的链接
+    res.redirect(subscriptionLink);  
 
   } catch (error) {
     console.error('启动服务时发生错误:', error);
