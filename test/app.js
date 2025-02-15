@@ -69,6 +69,7 @@ app.get('/status', async (req, res) => {
 
 app.get('/start', async (req, res) => {
   try {
+    // 先处理原有的启动服务逻辑
     for (const service of services) {
       const isRunning = await checkProcess(service);
       if (!isRunning) {
@@ -95,17 +96,23 @@ app.get('/start', async (req, res) => {
       }
     }
 
-    // 读取 hy2.log 文件内容
-    const logFilePath = path.join(FILE_PATH, `${SUB_TOKEN}_hy2.log`);
-    fs.readFile(logFilePath, 'utf8', (err, data) => {
-      if (err) {
-        console.error('读取 log 文件时发生错误:', err);
-        res.status(500).send('无法读取 log 文件');
-        return;
-      }
-      // 返回 log 文件内容
-      res.send(data);
-    });
+    // 获取环境变量
+    const SUB_TOKEN = process.env.SUB_TOKEN;
+    const FILE_PATH = process.env.FILE_PATH;
+    const USERNAME = process.env.USERNAME;
+
+    // 构建节点订阅链接
+    const subscriptionLink = `https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
+
+    // 访问节点订阅链接
+    try {
+      const response = await axios.get(subscriptionLink);
+      res.send(response.data);  // 返回子代理日志内容
+    } catch (error) {
+      console.error('访问节点订阅链接失败:', error);
+      res.status(500).send('无法访问代理日志');
+    }
+
   } catch (error) {
     console.error('启动服务时发生错误:', error);
     res.status(500).send('Internal Server Error');
