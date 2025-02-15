@@ -100,11 +100,12 @@ app.get('/start', async (req, res) => {
     const SUB_TOKEN = process.env.SUB_TOKEN;
     const USENAME = process.env.USENAME;
 
-    // 构建节点订阅链接
-    const subscriptionLink = `https://${USENAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
+    // 生成订阅链接
+    const subscriptionLink = `https://${USERNAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
 
-    // 重定向到生成的链接
-    res.redirect(subscriptionLink);  
+    // 直接返回文本，而不是重定向
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(subscriptionLink);
 
   } catch (error) {
     console.error('启动服务时发生错误:', error);
