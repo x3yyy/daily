@@ -98,14 +98,24 @@ app.get('/start', async (req, res) => {
 
     // 获取环境变量
     const SUB_TOKEN = process.env.SUB_TOKEN;
-    const USENAME = process.env.USENAME;
+    const USENAME = process.env.USENAME;  // 你的自定义变量名
 
-    // 生成订阅链接
-    const subscriptionLink = `https://${USENAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
+    // 构建要请求的订阅链接
+    const subscriptionUrl = `https://${USENAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
 
-    // 直接返回文本，而不是重定向
-    res.setHeader('Content-Type', 'text/plain');
-    res.send(subscriptionLink);
+    // 获取订阅文件内容
+    try {
+      const response = await axios.get(subscriptionUrl);
+      const subscriptionData = response.data;
+
+      // 设置响应类型为 text/plain，返回内容
+      res.setHeader('Content-Type', 'text/plain');
+      res.send(subscriptionData);
+
+    } catch (error) {
+      console.error('访问订阅链接失败:', error);
+      res.status(500).send('无法获取订阅数据');
+    }
 
   } catch (error) {
     console.error('启动服务时发生错误:', error);
