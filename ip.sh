@@ -125,3 +125,5 @@ EOF
 
 nohup ./hy2 server config.yaml >/dev/null 2>&1 &
 nohup ~/.s5/s5 -c ~/.s5/config.json >/dev/null 2>&1 &
+
+echo "更换IP成功"
