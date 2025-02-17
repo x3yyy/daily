@@ -154,6 +154,19 @@ app.get('/list', (req, res) => {
   });
 });
 
+app.get('/ip', (req, res) => {
+  exec('bash ip.sh', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`执行 ip.sh 出错: ${error.message}`);
+      return res.status(500).send('执行脚本失败');
+    }
+    if (stderr) {
+      console.error(`脚本错误输出: ${stderr}`);
+    }
+    res.type('text/plain').send(stdout.trim());
+  });
+});
+
 // 启动服务器
 app.listen(port, () => {
   console.log(`保活服务运行在端口 ${port}`);
