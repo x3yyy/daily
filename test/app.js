@@ -155,7 +155,7 @@ app.get('/list', (req, res) => {
 });
 
 app.get('/ip', (req, res) => {
-  exec('bash ip.sh', (error, stdout, stderr) => {
+  exec('cd ~ && bash ip.sh', (error, stdout, stderr) => {
     if (error) {
       console.error(`执行 ip.sh 出错: ${error.message}`);
       return res.status(500).send('执行脚本失败');
