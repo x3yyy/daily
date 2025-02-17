@@ -2,7 +2,7 @@
 ## 安装
 
 ```s
-bash <(curl -Ls https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/h5.js)
+bash <(curl -Ls https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/11.js)
 ```
 ## 换IP
 
