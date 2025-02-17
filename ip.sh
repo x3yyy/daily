@@ -127,3 +127,4 @@ nohup ./hy2 server config.yaml >/dev/null 2>&1 &
 nohup ~/.s5/s5 -c ~/.s5/config.json >/dev/null 2>&1 &
 
 echo "更换IP成功"
+echo -e "\e[1;32m本机IP：$HOST_IP\033[0m\n"
