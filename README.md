@@ -1,6 +1,11 @@
 # daily
-## 安装说明
+## 安装
 
 ```s
-bash <(curl -Ls https://raw.githubusercontent.com/lileeleo/daily/refs/heads/main/2.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/h5.js)
+```
+## 换IP
+
+```s
+bash <(curl -Ls https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/ip.js)
 ```
