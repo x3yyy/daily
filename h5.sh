@@ -356,7 +356,7 @@ fi
           fi
       fi
 
-      echo "socks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}"
+      echo -e "\n\e[31msocks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}\e[0m\n"
     else
       echo "代理创建失败，请检查自己输入的内容。"
     fi
@@ -379,7 +379,7 @@ fi
 
 echo -e "\e[1;33m如发现掉线访问https://keep.${USERNAME}.serv00.net/start唤醒,或者用https://console.cron-job.org在线访问网页自动唤醒\n\e[0m"
 
-cat ${FILE_PATH}/${SUB_TOKEN}_hy2.log
+echo -e "\e[31m$(cat ${FILE_PATH}/${SUB_TOKEN}_hy2.log)\e[0m\n"
 
 echo "脚本执行完成。致谢：RealNeoMan、k0baya、eooce"
 
