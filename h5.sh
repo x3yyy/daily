@@ -356,7 +356,7 @@ fi
           fi
       fi
 
-      echo -e "\n\e[31msocks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}\e[0m\n"
+      echo -e "\n\e[31m代理创建成功\e[0m\n"
     else
       echo "代理创建失败，请检查自己输入的内容。"
     fi
