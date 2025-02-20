@@ -122,7 +122,7 @@ transport:
 EOF
 
 cat > ${FILE_PATH}/${SUB_TOKEN}_hy2.log <<EOF
-hysteria2://$UUID@$HOST_IP:$PORT/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-$NAME
+hysteria2://$UUID@$HOST_IP:$PORT/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-hysteria2
 EOF
 
 nohup ./hy2 server config.yaml >/dev/null 2>&1 &
