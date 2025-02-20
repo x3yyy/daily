@@ -119,11 +119,9 @@ transport:
     hopInterval: 30s
 EOF
 
-ISP=$(curl -s --max-time 2 https://speed.cloudflare.com/meta | awk -F\" '{print $26}' | sed -e 's/ /_/g' || echo "0")
+ISP=$(curl -s --max-time 2 https://speed.cloudflare.com/meta | awk -F\" '{print $26}' | sed -e 's/ /_/g' -e 's/#/\\#/g' || echo "0")
 
-hysteria2="hysteria2://$UUID@$HOST_IP:$PORT/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-hysteria2"
-
-sed -i '' "1s/.*/$hysteria2/" "${FILE_PATH}/${SUB_TOKEN}_hy2.log"
+sed -i '' "1s/.*/hysteria2:\/\/$UUID@$HOST_IP:$PORT\/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-hysteria2/" "${FILE_PATH}/${SUB_TOKEN}_hy2.log"
 
 echo "更换IP成功"
 echo -e "\e[1;32m本机IP：$HOST_IP\033[0m\n"
