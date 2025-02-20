@@ -121,9 +121,7 @@ transport:
     hopInterval: 30s
 EOF
 
-cat > ${FILE_PATH}/${SUB_TOKEN}_hy2.log <<EOF
-hysteria2://$UUID@$HOST_IP:$PORT/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-hysteria2
-EOF
+sed -i '' "1s/.*/hysteria2:\/\/$UUID@$HOST_IP:$PORT\/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-hysteria2/" "${FILE_PATH}/${SUB_TOKEN}_hy2.log"
 
 echo "更换IP成功"
 echo -e "\e[1;32m本机IP：$HOST_IP\033[0m\n"
