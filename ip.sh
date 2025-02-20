@@ -95,6 +95,8 @@ echo -e "\e[1;32m获取可用IP中,请稍等...\e[0m"
 HOST_IP=$(get_ip)
 echo -e "\e[1;35m当前选择IP为: $HOST_IP 如安装完后节点不通可尝试重新安装\e[0m"
 
+ISP=$(curl -s --max-time 2 https://speed.cloudflare.com/meta | awk -F\" '{print $26}' | sed -e 's/ /_/g' || echo "0")
+
 cat << EOF > config.yaml
 listen: $HOST_IP:$PORT
 
