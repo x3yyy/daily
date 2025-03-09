@@ -50,7 +50,7 @@ const services = [
   {
     name: 'S5',
     pattern: '.s5/s5',
-    startCmd: 'nohup ~/.s5/s5 -c ~/.s5/config.json >/dev/null 2>&1 &',
+    startCmd: 'cd ~ && nohup ~/.s5/s5 -c ~/.s5/config.json >/dev/null 2>&1 &',
   }
 ];
 
