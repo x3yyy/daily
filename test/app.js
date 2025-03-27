@@ -69,49 +69,54 @@ app.get('/status', async (req, res) => {
 
 app.get('/start', async (req, res) => {
   try {
-    // 先处理原有的启动服务逻辑
+    let startError = null;
+
     for (const service of services) {
       const isRunning = await checkProcess(service);
       if (!isRunning) {
         console.log(`${service.name} 未运行，尝试启动...`);
         try {
           await new Promise((resolve, reject) => {
-            exec(service.startCmd, (error, stdout, stderr) => {
-              if (error) {
-                console.error(`启动 ${service.name} 失败:`, stderr);
-                reject(error);
-              } else {
+            const process = spawn(service.startCmd, { shell: true });
+
+            process.stdout.on('data', (data) => console.log(`${service.name} 输出:`, data.toString()));
+            process.stderr.on('data', (data) => console.error(`${service.name} 错误:`, data.toString()));
+
+            process.on('close', (code) => {
+              if (code === 0) {
                 console.log(`${service.name} 启动成功`);
-                processes[service.name] = stdout;  // 记录进程
                 resolve();
+              } else {
+                reject(new Error(`${service.name} 启动失败，退出码: ${code}`));
               }
             });
           });
+
           await sendTelegram(`${service.name} 已启动`);
         } catch (error) {
           console.error(`启动 ${service.name} 时发生错误:`, error);
-          res.status(500).send(`启动 ${service.name} 失败`);
-          return;
+          startError = `启动 ${service.name} 失败`;
         }
       }
     }
 
-    // 获取环境变量
-    const SUB_TOKEN = process.env.SUB_TOKEN;
-    const USENAME = process.env.USENAME;  // 你的自定义变量名
+    if (startError) {
+      return res.status(500).send(startError);
+    }
 
-    // 构建要请求的订阅链接
+    const SUB_TOKEN = process.env.SUB_TOKEN;
+    const USENAME = process.env.USENAME;
     const subscriptionUrl = `https://${USENAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
 
-    // 获取订阅文件内容
+    const axiosConfig = {
+      timeout: 5000,
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    };
+
     try {
-      const response = await axios.get(subscriptionUrl);
-      const subscriptionData = response.data;
-
-      // 设置响应类型为 text/plain，返回内容
+      const response = await axios.get(subscriptionUrl, axiosConfig);
       res.setHeader('Content-Type', 'text/plain');
-      res.send(subscriptionData.trim());
-
+      res.send(response.data.trim());
     } catch (error) {
       console.error('访问订阅链接失败:', error);
       res.status(500).send('无法获取订阅数据');
