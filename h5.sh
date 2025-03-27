@@ -385,8 +385,5 @@ echo -e "\e[31m$(cat ${FILE_PATH}/${SUB_TOKEN}_hy2.log)\e[0m\n"
 
 echo "脚本执行完成。致谢：RealNeoMan、k0baya、eooce"
 
-# 等待用户按回车键继续
-read -p "按回车键结束安装并退出..."
-
 # 结束当前用户进程
 pkill -kill -u $(whoami)
