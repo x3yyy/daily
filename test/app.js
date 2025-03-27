@@ -67,7 +67,7 @@ app.get('/status', async (req, res) => {
   res.json({ services: status });
 });
 
-app.get('/star', async (req, res) => {
+app.get('/start6', async (req, res) => {
   try {
     // 先处理原有的启动服务逻辑
     for (const service of services) {
