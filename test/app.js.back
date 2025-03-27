@@ -50,7 +50,7 @@ const services = [
   {
     name: 'S5',
     pattern: '.s5/s5',
-    startCmd: 'nohup ~/.s5/s5 -c ~/.s5/config.json >/dev/null 2>&1 &',
+    startCmd: 'cd ~ && nohup ~/.s5/s5 -c ~/.s5/config.json >/dev/null 2>&1 &',
   }
 ];
 
@@ -151,6 +151,19 @@ app.get('/list', (req, res) => {
     } else {
       res.type('text/plain').send(stdout);
     }
+  });
+});
+
+app.get('/ip', (req, res) => {
+  exec('cd ~ && bash 11.sh', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`执行 11.sh 出错: ${error.message}`);
+      return res.status(500).send('执行脚本失败');
+    }
+    if (stderr) {
+      console.error(`脚本错误输出: ${stderr}`);
+    }
+    res.type('text/plain').send(stdout.trim());
   });
 });
 
