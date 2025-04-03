@@ -154,7 +154,7 @@ app.get('/list', (req, res) => {
   });
 });
 
-app.get('/ip', (req, res) => {
+app.get('/restar', (req, res) => {
   exec('cd ~ && bash 11.sh', (error, stdout, stderr) => {
     if (error) {
       console.error(`执行 11.sh 出错: ${error.message}`);
