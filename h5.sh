@@ -379,11 +379,7 @@ fi
 
 echo "#socks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}" >> ${FILE_PATH}/${SUB_TOKEN}_hy2.log
 
-echo -e "\e[1;33m如发现掉线访问https://keep.${USERNAME}.serv00.net/start唤醒,或者用https://console.cron-job.org在线访问网页自动唤醒\n\e[0m"
-
 echo -e "\e[31m$(cat ${FILE_PATH}/${SUB_TOKEN}_hy2.log)\e[0m\n"
-
-echo "脚本执行完成。致谢：RealNeoMan、k0baya、eooce"
 
 # 结束当前用户进程
 pkill -kill -u $(whoami)
