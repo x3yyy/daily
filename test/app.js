@@ -101,7 +101,7 @@ app.get('/star', async (req, res) => {
     const USENAME = process.env.USENAME;  // 你的自定义变量名
 
     // 构建要请求的订阅链接
-    const subscriptionUrl = `https://${USENAME}.serv00.net/${SUB_TOKEN}_hy2.log`;
+    const subscriptionUrl = `https://${USENAME}.useruno.com/${SUB_TOKEN}_hy2.log`;
 
     // 获取订阅文件内容
     try {
