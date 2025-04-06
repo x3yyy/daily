@@ -17,4 +17,4 @@ fi
 chmod +x h5.sh ip.sh
 
 # 执行脚本
-./h5.sh
+bash h5.sh
