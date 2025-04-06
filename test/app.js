@@ -8,6 +8,23 @@ const username = process.env.USERNAME; // 获取环境变量 USERNAME
 const fs = require('fs');
 const path = require('path');
 
+// Telegram通知函数
+async function sendTelegram(message) {
+  if (!process.env.BOT_TOKEN || !process.env.CHAT_ID) return;
+
+  try {
+    await axios.get(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
+      params: {
+        chat_id: process.env.CHAT_ID,
+        text: message,
+        parse_mode: 'HTML'
+      }
+    });
+  } catch (error) {
+    console.error('Telegram通知失败:', error.message);
+  }
+}
+
 // 进程检查函数
 function checkProcess(service) {
   return new Promise((resolve) => {
@@ -107,6 +124,26 @@ app.get('/star', async (req, res) => {
 });
 
 
+app.get('/stop', (req, res) => {
+  if (!username) {
+    return res.status(400).send('未设置 USERNAME 环境变量');
+  }
+
+  // 执行 pkill 命令来停止服务
+  exec(`pkill -kill -u ${username}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`执行错误: ${error}`);
+      return res.status(500).send('停止服务失败');
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).send('停止服务失败');
+    }
+    console.log(`stdout: ${stdout}`);
+    res.send('Hysteria2 和 S5 服务已停止');
+  });
+});
+
 app.get('/list', (req, res) => {
   exec('ps aux', (error, stdout) => {
     if (error) {
@@ -117,6 +154,18 @@ app.get('/list', (req, res) => {
   });
 });
 
+app.get('/restar', (req, res) => {
+  exec('cd ~ && bash 11.sh', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`执行 11.sh 出错: ${error.message}`);
+      return res.status(500).send('执行脚本失败');
+    }
+    if (stderr) {
+      console.error(`脚本错误输出: ${stderr}`);
+    }
+    res.type('text/plain').send(stdout.trim());
+  });
+});
 
 // 启动服务器
 app.listen(port, () => {
