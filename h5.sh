@@ -11,7 +11,7 @@ export CHAT_ID=${CHAT_ID:-''}
 export BOT_TOKEN=${BOT_TOKEN:-''} 
 export SUB_TOKEN=${SUB_TOKEN:-'sub'}
 
-[[ "$HOSTNAME" == "s1.ct8.pl" ]] && WORKDIR="$HOME/domains/${USERNAME}.ct8.pl/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.ct8.pl/public_html" || WORKDIR="$HOME/domains/${USERNAME}.serv00.net/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.serv00.net/public_html"
+[[ "$HOSTNAME" == "s1.ct8.pl" ]] && WORKDIR="$HOME/domains/${USERNAME}.ct8.pl/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.ct8.pl/public_html" || WORKDIR="$HOME/domains/${USERNAME}.useruno.com/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.useruno.com/public_html"
 rm -rf "$WORKDIR" && mkdir -p "$WORKDIR" "$FILE_PATH" && chmod 777 "$WORKDIR" "$FILE_PATH" >/dev/null 2>&1
 bash -c 'ps aux | grep $(whoami) | grep -v "sshd\|bash\|grep" | awk "{print \$2}" | xargs -r kill -9 >/dev/null 2>&1' >/dev/null 2>&1
 
@@ -181,7 +181,7 @@ EOF
 
 install_keepalive () {
     echo -e "\n\e[1;35m正在安装保活服务中,请稍等......\e[0m"
-    keep_path="$HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs"
+    keep_path="$HOME/domains/keep.${USERNAME}.useruno.com/public_nodejs"
     [ -d "$keep_path" ] || mkdir -p "$keep_path"
     app_file_url="https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/test/app.js"
 
@@ -205,9 +205,9 @@ USERNAME=$(whoami)   #大小写
 USENAME=${USERNAME}  #小写
 FILE_PATH=${FILE_PATH}
 EOF
-    devil www add ${USERNAME}.serv00.net php > /dev/null 2>&1
-    devil www add keep.${USERNAME}.serv00.net nodejs /usr/local/bin/node18 > /dev/null 2>&1
-    devil ssl www add $HOST_IP le le keep.${USERNAME}.serv00.net > /dev/null 2>&1
+    devil www add ${USERNAME}.useruno.com php > /dev/null 2>&1
+    devil www add keep.${USERNAME}.useruno.com nodejs /usr/local/bin/node18 > /dev/null 2>&1
+    devil ssl www add $HOST_IP le le keep.${USERNAME}.useruno.com > /dev/null 2>&1
     ln -fs /usr/local/bin/node18 ~/bin/node > /dev/null 2>&1
     ln -fs /usr/local/bin/npm18 ~/bin/npm > /dev/null 2>&1
     mkdir -p ~/.npm-global
@@ -215,9 +215,9 @@ EOF
     echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
     rm -rf $HOME/.npmrc > /dev/null 2>&1
     cd ${keep_path} && npm install express dotenv axios --silent > /dev/null 2>&1
-    rm $HOME/domains/keep.${USERNAME}.serv00.net/public_nodejs/public/index.html > /dev/null 2>&1
-    devil www options keep.${USERNAME}.serv00.net sslonly on > /dev/null 2>&1
-    if devil www restart keep.${USERNAME}.serv00.net 2>&1 | grep -q "succesfully"; then
+    rm $HOME/domains/keep.${USERNAME}.useruno.com/public_nodejs/public/index.html > /dev/null 2>&1
+    devil www options keep.${USERNAME}.useruno.com sslonly on > /dev/null 2>&1
+    if devil www restart keep.${USERNAME}.useruno.com 2>&1 | grep -q "succesfully"; then
         echo -e "\e[1;32m\n全自动保活服务安装成功\n\e[0m"
 
     else
@@ -347,9 +347,9 @@ fi
       # 查找并列出包含用户名的文件夹
       found_folders=$(find "/home/${USER}/domains" -type d -name "*${USER,,}*")
       if [ -n "$found_folders" ]; then
-          if echo "$found_folders" | grep -q "serv00.net"; then
-              #echo "找到包含 'serv00.net' 的文件夹。"
-              SERV_DOMAIN="${USER,,}.serv00.net"
+          if echo "$found_folders" | grep -q "useruno.com"; then
+              #echo "找到包含 'useruno.com' 的文件夹。"
+              SERV_DOMAIN="${USER,,}.useruno.com"
           elif echo "$found_folders" | grep -q "ct8.pl"; then
               #echo "未找到包含 'ct8.pl' 的文件夹。"
               SERV_DOMAIN="${USER,,}.ct8.pl"
@@ -380,6 +380,3 @@ fi
 echo "#socks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}" >> ${FILE_PATH}/${SUB_TOKEN}_hy2.log
 
 echo -e "\e[31m$(cat ${FILE_PATH}/${SUB_TOKEN}_hy2.log)\e[0m\n"
-
-# 结束当前用户进程
-pkill -kill -u $(whoami)
