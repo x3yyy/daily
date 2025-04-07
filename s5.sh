@@ -12,72 +12,27 @@ echo -e "\e[32m
 
 # 获取当前用户名
 USER=$(whoami)
+WORKDIR="/home/${USER}/.nezha-agent"
 FILE_PATH="/home/${USER}/.s5"
 
 ###################################################
-get_available_ports() {
-    # 获取所有端口列表
-    port_list=$(devil port list)
-
-    # 获取当前可用的TCP和UDP端口数
-    tcp_ports=$(echo "$port_list" | grep -c "tcp")
-    udp_ports=$(echo "$port_list" | grep -c "udp")
-
-    # 如果有可用的TCP和UDP端口
-    if [[ $tcp_ports -ge 1 && $udp_ports -ge 1 ]]; then
-        # 获取第一个可用的TCP和UDP端口
-        tcp_port=$(echo "$port_list" | awk '/tcp/ {print $1}' | sed -n '1p')
-        udp_port=$(echo "$port_list" | awk '/udp/ {print $1}' | sed -n '1p')
-        echo -e "\e[1;35m当前TCP端口: $tcp_port\e[0m"
-        echo -e "\e[1;35m当前UDP端口: $udp_port\e[0m"
-
-    else
-        # 如果没有可用的UDP端口，尝试申请一个新的UDP端口
-        if [[ $udp_ports -lt 1 ]]; then
-            echo -e "\e[1;91m没有可用的UDP端口，正在申请...\e[0m"
-            while true; do
-                udp_port=$(shuf -i 10000-65535 -n 1)  # 随机选择一个UDP端口
-                result=$(devil port add udp $udp_port 2>&1)
-                if [[ $result == *"succesfully"* ]]; then
-                    echo -e "\e[1;32m已成功添加UDP端口: $udp_port"
-                    break
-                else
-                    echo -e "\e[1;33m端口 $udp_port 不可用，尝试其他端口...\e[0m"
-                fi
-            done
-        fi
-
-        # 如果没有可用的TCP端口，尝试申请一个新的TCP端口
-        if [[ $tcp_ports -lt 1 ]]; then
-            echo -e "\e[1;91m没有可用的TCP端口，正在申请...\e[0m"
-            while true; do
-                tcp_port=$(shuf -i 10000-65535 -n 1)  # 随机选择一个TCP端口
-                result=$(devil port add tcp $tcp_port 2>&1)
-                if [[ $result == *"succesfully"* ]]; then
-                    echo -e "\e[1;32m已成功添加TCP端口: $tcp_port"
-                    break
-                else
-                    echo -e "\e[1;33m端口 $tcp_port 不可用，尝试其他端口...\e[0m"
-                fi
-            done
-        fi
-    fi
-
-    # 输出最终的 TCP 和 UDP 端口
-    echo -e "\e[1;35m最终 TCP 端口: $tcp_port\e[0m"
-    echo -e "\e[1;35m最终 UDP 端口: $udp_port\e[0m"
-
-    # 设置环境变量
-    export PORT=$udp_port
-    export SOCKS5_PORT=$tcp_port
-}
-
-get_available_ports
 
 socks5_config(){
+# 提示用户输入socks5端口号
+read -p "请输入socks5端口号: " SOCKS5_PORT
 
-  SOCKS5_USER=lee
-  SOCKS5_PASS=LcQ14167374
+# 提示用户输入用户名和密码
+read -p "请输入socks5用户名: " SOCKS5_USER
+
+while true; do
+  read -p "请输入socks5密码（不能包含@和:）：" SOCKS5_PASS
+  echo
+  if [[ "$SOCKS5_PASS" == *"@"* || "$SOCKS5_PASS" == *":"* ]]; then
+    echo "密码中不能包含@和:符号，请重新输入。"
+  else
+    break
+  fi
+done
 
 # config.js文件
   cat > ${FILE_PATH}/config.json << EOF
@@ -119,11 +74,20 @@ EOF
 install_socks5(){
   socks5_config
   if [ ! -e "${FILE_PATH}/s5" ]; then
-  curl -L -sS -o "${FILE_PATH}/s5" "https://github.com/eooce/test/releases/download/freebsd/web"
-  echo "文件下载完成"
-else
-  echo "文件已存在，跳过下载"
-fi
+    curl -L -sS -o "${FILE_PATH}/s5" "https://github.com/eooce/test/releases/download/freebsd/web"
+  else
+    read -p "socks5 程序已存在，是否重新下载覆盖？(Y/N 回车N)" downsocks5
+    downsocks5=${downsocks5^^} # 转换为大写
+    if [ "$downsocks5" == "Y" ]; then
+      if pgrep s5 > /dev/null; then
+        pkill s5
+        echo "socks5 进程已被终止"
+      fi
+      curl -L -sS -o "${FILE_PATH}/s5" "https://github.com/eooce/test/releases/download/freebsd/web"
+    else
+      echo "使用已存在的 socks5 程序"
+    fi
+  fi
 
   if [ -e "${FILE_PATH}/s5" ]; then
     chmod 777 "${FILE_PATH}/s5"
@@ -137,9 +101,9 @@ fi
       # 查找并列出包含用户名的文件夹
       found_folders=$(find "/home/${USER}/domains" -type d -name "*${USER,,}*")
       if [ -n "$found_folders" ]; then
-          if echo "$found_folders" | grep -q "serv00.net"; then
-              #echo "找到包含 'serv00.net' 的文件夹。"
-              SERV_DOMAIN="${USER,,}.serv00.net"
+          if echo "$found_folders" | grep -q "useruno.com"; then
+              #echo "找到包含 'useruno.com' 的文件夹。"
+              SERV_DOMAIN="${USER,,}.useruno.com"
           elif echo "$found_folders" | grep -q "ct8.pl"; then
               #echo "未找到包含 'ct8.pl' 的文件夹。"
               SERV_DOMAIN="${USER,,}.ct8.pl"
@@ -153,18 +117,174 @@ fi
   fi
 }
 
-########################梦开始的地方###########################
-# 自动安装 socks5
-echo "正在检查 socks5 安装目录..."
+download_agent() {
+    echo "请选择 nezha-agent 被控版本："
+    echo "1. release 最新版本"
+    echo "2. v0.20.5 兼容版本"
+    read -p "请选择(回车使用最新版本)：" nezhaAgentVersion
+    nezhaAgentVersion=${nezhaAgentVersion:-1}
 
-# 检查socks5目录是否存在
-if [ -d "$FILE_PATH" ]; then
-  install_socks5
+    # 根据用户选择设置下载链接
+    if [ "$nezhaAgentVersion" = "1" ]; then
+        DOWNLOAD_LINK="https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_freebsd_amd64.zip"
+    elif [ "$nezhaAgentVersion" = "2" ]; then
+        DOWNLOAD_LINK="https://github.com/nezhahq/agent/releases/download/v0.20.5/nezha-agent_freebsd_amd64.zip"
+    else
+        echo "输入无效,将使用最新版本"
+        DOWNLOAD_LINK="https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_freebsd_amd64.zip"
+    fi
+    # 使用wget下载,如果下载失败则执行以下操作
+    if ! wget -qO "$ZIP_FILE" "$DOWNLOAD_LINK"; then
+        echo '错误: 下载失败! 请检查您的网络连接或稍后重试。'
+        return 1
+    fi
+    return 0
+}
+
+decompression() {
+    unzip "$1" -d "$TMP_DIRECTORY"
+    EXIT_CODE=$?
+    if [ ${EXIT_CODE} -ne 0 ]; then
+        rm -r "$TMP_DIRECTORY"
+        echo "removed: $TMP_DIRECTORY"
+        exit 1
+    fi
+}
+
+install_agent() {
+    install -m 755 ${TMP_DIRECTORY}/nezha-agent ${WORKDIR}/nezha-agent
+}
+
+generate_run_agent(){
+    echo "关于接下来需要输入的三个变量，请注意："
+    echo "Dashboard 站点地址可以写 IP 也可以写域名（域名不可套 CDN）;但是请不要加上 http:// 或者 https:// 等前缀，直接写 IP 或者域名即可；"
+    echo "面板 RPC 端口为你的 Dashboard 安装时设置的用于 Agent 接入的 RPC 端口（默认 5555）；"
+    echo "Agent 密钥需要先在管理面板上添加 Agent 获取。"
+    printf "请输入 Dashboard 站点地址："
+    read -r NZ_DASHBOARD_SERVER
+    printf "请输入面板 RPC 端口："
+    read -r NZ_DASHBOARD_PORT
+    printf "请输入 Agent 密钥: "
+    read -r NZ_DASHBOARD_PASSWORD
+    printf "是否启用针对 gRPC 端口的 SSL/TLS加密 (--tls)，需要请按 [Y]，默认是不需要，不理解的用户可回车跳过: "
+    read -r NZ_GRPC_PROXY
+    echo "${NZ_GRPC_PROXY}" | grep -qiw 'Y' && ARGS='--tls'
+
+    if [ -z "${NZ_DASHBOARD_SERVER}" ] || [ -z "${NZ_DASHBOARD_PASSWORD}" ]; then
+        echo "error! 所有选项都不能为空"
+        return 1
+        rm -rf ${WORKDIR}
+        exit
+    fi
+
+    cat > ${WORKDIR}/start.sh << EOF
+#!/bin/bash
+pgrep -f 'nezha-agent' | xargs -r kill
+cd ${WORKDIR}
+TMPDIR="${WORKDIR}" exec ${WORKDIR}/nezha-agent -s ${NZ_DASHBOARD_SERVER}:${NZ_DASHBOARD_PORT} -p ${NZ_DASHBOARD_PASSWORD} --report-delay 4 --disable-auto-update --disable-force-update ${ARGS} >/dev/null 2>&1
+EOF
+    chmod +x ${WORKDIR}/start.sh
+}
+
+run_agent(){
+    nohup ${WORKDIR}/start.sh >/dev/null 2>&1 &
+    printf "nezha-agent已经准备就绪，请按下回车键启动\n"
+    read
+    printf "正在启动nezha-agent，请耐心等待...\n"
+    sleep 3
+    if pgrep -f "nezha-agent -s" > /dev/null; then
+        echo "nezha-agent 已启动！"
+        echo "如果面板处未上线，请检查参数是否填写正确，并停止 agent 进程，删除已安装的 agent 后重新安装！"
+        echo "停止 agent 进程的命令：pgrep -f 'nezha-agent' | xargs -r kill"
+        echo "删除已安装的 agent 的命令：rm -rf ~/.nezha-agent"
+    else
+        rm -rf "${WORKDIR}"
+        echo "nezha-agent 启动失败，请检查参数填写是否正确，并重新安装！"
+    fi
+}
+
+install_nezha_agent(){
+  mkdir -p ${WORKDIR}
+  cd ${WORKDIR}
+  TMP_DIRECTORY="$(mktemp -d)"
+  ZIP_FILE="${TMP_DIRECTORY}/nezha-agent_freebsd_amd64.zip"
+
+  # 如果 start.sh 文件不存在，则生成运行代理的脚本
+  if [ ! -e "${WORKDIR}/start.sh" ]; then
+    generate_run_agent
+  else
+    read -p "nezha-agent 配置信息已存在，是否重新配置？(Y/N 回车N)" nezhaagentyn
+    nezhaagentyn=${nezhaagentyn^^} # 转换为大写
+    if [ "$nezhaagentyn" == "Y" ]; then
+      generate_run_agent
+    fi
+  fi
+
+  # 如果 nezha-agent 文件不存在，则下载并解压代理文件，然后进行安装
+  if [ ! -e "${WORKDIR}/nezha-agent" ]; then
+    download_agent
+    decompression "${ZIP_FILE}"
+    install_agent
+  else
+    read -p "nezha-agent 文件已存在，是否重新下载最新版本？(Y/N 回车N)" nezhaagentd
+    nezhaagentd=${nezhaagentd^^} # 转换为大写
+    if [ "$nezhaagentd" == "Y" ]; then
+      rm -rf "${ZIP_FILE}"
+      if pgrep nezha-agent > /dev/null; then
+        pkill nezha-agent
+        echo "nezha-agent 进程已被终止"
+      fi
+      rm -rf "${WORKDIR}/nezha-agent"
+      download_agent
+      decompression "${ZIP_FILE}"
+      install_agent
+    fi
+  fi
+
+  # 删除临时目录
+  rm -rf "${TMP_DIRECTORY}"
+
+  # 如果 start.sh 文件存在，则运行代理
+  if [ -e "${WORKDIR}/start.sh" ]; then
+      run_agent
+  fi
+
+}
+
+########################梦开始的地方###########################
+
+read -p "是否安装 socks5 (Y/N 回车N): " socks5choice
+socks5choice=${socks5choice^^} # 转换为大写
+if [ "$socks5choice" == "Y" ]; then
+  # 检查socks5目录是否存在
+  if [ -d "$FILE_PATH" ]; then
+    install_socks5
+  else
+    # 创建socks5目录
+    echo "正在创建 socks5 目录..."
+    mkdir -p "$FILE_PATH"
+    install_socks5
+  fi
 else
-  # 创建socks5目录
-  echo "正在创建 socks5 目录..."
-  mkdir -p "$FILE_PATH" || { echo "目录创建失败，权限不足或路径错误。"; exit 1; }
-  install_socks5
+  echo "不安装 socks5"
 fi
-pkill -kill -u $(whoami)
+
+read -p "是否安装 nezha-agent (Y/N 回车N): " choice
+choice=${choice^^} # 转换为大写
+if [ "$choice" == "Y" ]; then
+  echo "正在安装 nezha-agent..."
+  install_nezha_agent
+else
+  echo "不安装 nezha-agent"
+fi
+
+read -p "是否添加 crontab 守护进程的计划任务(Y/N 回车N): " crontabgogogo
+crontabgogogo=${crontabgogogo^^} # 转换为大写
+if [ "$crontabgogogo" == "Y" ]; then
+  echo "添加 crontab 守护进程的计划任务"
+  curl -s https://raw.githubusercontent.com/cmliu/socks5-for-serv00/main/check_cron.sh | bash
+else
+  echo "不添加 crontab 计划任务"
+fi
+
 echo "脚本执行完成。致谢：RealNeoMan、k0baya、eooce"
