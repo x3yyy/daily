@@ -3,13 +3,10 @@ export LC_ALL=C
 HOSTNAME=$(hostname)
 USERNAME=$(whoami | tr '[:upper:]' '[:lower:]')
 MD5_HASH=$(echo -n "$USERNAME" | md5sum | awk '{print $1}')
-export UUID=${UUID:-${MD5_HASH:0:8}-${MD5_HASH:8:4}-4${MD5_HASH:12:3}-$(echo $((RANDOM % 4 + 8)) | head -c 1)${MD5_HASH:15:3}-${MD5_HASH:19:12}}
-export NEZHA_PORT=${NEZHA_PORT:-'5555'}             
-export NEZHA_KEY=${NEZHA_KEY:-''}                
+export UUID=${UUID:-${MD5_HASH:0:8}-${MD5_HASH:8:4}-4${MD5_HASH:12:3}-$(echo $((RANDOM % 4 + 8)) | head -c 1)${MD5_HASH:15:3}-${MD5_HASH:19:12}}         
 export PORT=${PORT:-''} 
-export CHAT_ID=${CHAT_ID:-''} 
-export BOT_TOKEN=${BOT_TOKEN:-''} 
 export SUB_TOKEN=${SUB_TOKEN:-'sub'}
+devil www add ${USERNAME}.useruno.com php > /dev/null 2>&1
 
 [[ "$HOSTNAME" == "s1.ct8.pl" ]] && WORKDIR="$HOME/domains/${USERNAME}.ct8.pl/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.ct8.pl/public_html" || WORKDIR="$HOME/domains/${USERNAME}.useruno.com/logs" && FILE_PATH="${HOME}/domains/${USERNAME}.useruno.com/public_html"
 rm -rf "$WORKDIR" && mkdir -p "$WORKDIR" "$FILE_PATH" && chmod 777 "$WORKDIR" "$FILE_PATH" >/dev/null 2>&1
@@ -179,52 +176,6 @@ transport:
     hopInterval: 30s
 EOF
 
-install_keepalive () {
-    echo -e "\n\e[1;35m正在安装保活服务中,请稍等......\e[0m"
-    keep_path="$HOME/domains/keep.${USERNAME}.useruno.com/public_nodejs"
-    [ -d "$keep_path" ] || mkdir -p "$keep_path"
-    app_file_url="https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/test/app.js"
-
-    if command -v curl &> /dev/null; then
-        curl -s -o "${keep_path}/app.js" "$app_file_url"
-    elif command -v wget &> /dev/null; then
-        wget -q -O "${keep_path}/app.js" "$app_file_url"
-    else
-        echo -e "\n\e[1;32m警告: 文件下载失败,请手动从https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/test/app.js下载文件,并将文件上传到${keep_path}目录下\e[0m"
-    fi
-
-    cat > ${keep_path}/.env <<EOF
-UUID=${UUID}
-SUB_TOKEN=${SUB_TOKEN}
-TELEGRAM_CHAT_ID=${CHAT_ID}
-TELEGRAM_BOT_TOKEN=${BOT_TOKEN}
-NEZHA_SERVER=${NEZHA_SERVER}
-NEZHA_PORT=${NEZHA_PORT}
-NEZHA_KEY=${NEZHA_KEY}
-USERNAME=$(whoami)   #大小写
-USENAME=${USERNAME}  #小写
-FILE_PATH=${FILE_PATH}
-EOF
-    devil www add ${USERNAME}.useruno.com php > /dev/null 2>&1
-    devil www add keep.${USERNAME}.useruno.com nodejs /usr/local/bin/node18 > /dev/null 2>&1
-    devil ssl www add $HOST_IP le le keep.${USERNAME}.useruno.com > /dev/null 2>&1
-    ln -fs /usr/local/bin/node18 ~/bin/node > /dev/null 2>&1
-    ln -fs /usr/local/bin/npm18 ~/bin/npm > /dev/null 2>&1
-    mkdir -p ~/.npm-global
-    npm config set prefix '~/.npm-global'
-    echo 'export PATH=~/.npm-global/bin:~/bin:$PATH' >> $HOME/.bash_profile && source $HOME/.bash_profile
-    rm -rf $HOME/.npmrc > /dev/null 2>&1
-    cd ${keep_path} && npm install express dotenv axios --silent > /dev/null 2>&1
-    rm $HOME/domains/keep.${USERNAME}.useruno.com/public_nodejs/public/index.html > /dev/null 2>&1
-    devil www options keep.${USERNAME}.useruno.com sslonly on > /dev/null 2>&1
-    if devil www restart keep.${USERNAME}.useruno.com 2>&1 | grep -q "succesfully"; then
-        echo -e "\e[1;32m\n全自动保活服务安装成功\n\e[0m"
-
-    else
-        echo -e "\e[1;91m全自动保活服务安装失败,请删除所有文件夹后重试\n\e[0m"
-    fi
-}
-
 run() {
   if [ -e "${FILE_MAP[npm]}" ]; then
     tlsPorts=("443" "8443" "2096" "2087" "2083" "2053")
@@ -259,7 +210,6 @@ ISP=$(curl -s --max-time 2 https://speed.cloudflare.com/meta | awk -F\" '{print 
 
 echo -e "\n\e[1;32mHysteria2安装成功\033[0m\n"
 echo -e "\e[1;32m本机IP：$HOST_IP\033[0m\n"
-echo -e "\e[1;33mV2rayN 或 Nekobox、小火箭等直接导入,跳过证书验证需设置为true\033[0m\n"
 cat > ${FILE_PATH}/${SUB_TOKEN}_hy2.log <<EOF
 hysteria2://$UUID@$HOST_IP:$PORT/?sni=www.bing.com&alpn=h3&insecure=1#$ISP-$NAME
 EOF
@@ -279,7 +229,6 @@ cat << EOF
 EOF
 
 #rm -rf config.yaml fake_useragent_0.2.0.json
-install_keepalive
 
 # 获取当前用户名
 USER=$(whoami)
