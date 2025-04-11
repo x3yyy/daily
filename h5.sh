@@ -297,10 +297,10 @@ fi
       found_folders=$(find "/home/${USER}/domains" -type d -name "*${USER,,}*")
       if [ -n "$found_folders" ]; then
           if echo "$found_folders" | grep -q "useruno.com"; then
-              #echo "找到包含 'useruno.com' 的文件夹。"
+              echo "找到包含 'useruno.com' 的文件夹。"
               SERV_DOMAIN="${USER,,}.useruno.com"
           elif echo "$found_folders" | grep -q "ct8.pl"; then
-              #echo "未找到包含 'ct8.pl' 的文件夹。"
+              echo "未找到包含 'ct8.pl' 的文件夹。"
               SERV_DOMAIN="${USER,,}.ct8.pl"
           fi
       fi
