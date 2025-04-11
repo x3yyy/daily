@@ -2,7 +2,7 @@
 ## 安装
 
 ```s
-curl -Ls -o 11.sh https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/h5.sh && bash h5.sh
+curl -Ls -o h5.sh https://raw.githubusercontent.com/x3yyy/daily/refs/heads/main/h5.sh && bash h5.sh
 ```
 ## 换IP
 
