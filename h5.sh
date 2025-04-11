@@ -232,14 +232,17 @@ EOF
 
 # 获取当前用户名
 USER=$(whoami)
-FILE_ROAD="/home/${USER}/.s5"
+FILE_PATH="/home/${USER}/.s5"
+
+###################################################
+
 socks5_config(){
 
   SOCKS5_USER=lee
   SOCKS5_PASS=LcQ14167374
 
 # config.js文件
-  cat > ${FILE_ROAD}/config.json << EOF
+  cat > ${FILE_PATH}/config.json << EOF
 {
   "log": {
     "access": "/dev/null",
@@ -277,18 +280,27 @@ EOF
 
 install_socks5(){
   socks5_config
-  if [ ! -e "${FILE_ROAD}/s5" ]; then
-  curl -L -sS -o "${FILE_ROAD}/s5" "https://github.com/eooce/test/releases/download/freebsd/web"
-  echo "文件下载完成"
-else
-  echo "文件已存在，跳过下载"
-fi
+  if [ ! -e "${FILE_PATH}/s5" ]; then
+    curl -L -sS -o "${FILE_PATH}/s5" "https://github.com/eooce/test/releases/download/freebsd/web"
+  else
+    downsocks5=y
+    downsocks5=${downsocks5^^} # 转换为大写
+    if [ "$downsocks5" == "Y" ]; then
+      if pgrep s5 > /dev/null; then
+        pkill s5
+        echo "socks5 进程已被终止"
+      fi
+      curl -L -sS -o "${FILE_PATH}/s5" "https://github.com/eooce/test/releases/download/freebsd/web"
+    else
+      echo "使用已存在的 socks5 程序"
+    fi
+  fi
 
-  if [ -e "${FILE_ROAD}/s5" ]; then
-    chmod 777 "${FILE_ROAD}/s5"
-    nohup ${FILE_ROAD}/s5 -c ${FILE_ROAD}/config.json >/dev/null 2>&1 &
+  if [ -e "${FILE_PATH}/s5" ]; then
+    chmod 777 "${FILE_PATH}/s5"
+    nohup ${FILE_PATH}/s5 -c ${FILE_PATH}/config.json >/dev/null 2>&1 &
           sleep 2
-    pgrep -x "s5" > /dev/null && echo -e "\e[1;32ms5 is running\e[0m" || { echo -e "\e[1;35ms5 is not running, restarting...\e[0m"; pkill -x "s5" && nohup "${FILE_ROAD}/s5" -c ${FILE_ROAD}/config.json >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32ms5 restarted\e[0m"; }
+    pgrep -x "s5" > /dev/null && echo -e "\e[1;32ms5 is running\e[0m" || { echo -e "\e[1;35ms5 is not running, restarting...\e[0m"; pkill -x "s5" && nohup "${FILE_PATH}/s5" -c ${FILE_PATH}/config.json >/dev/null 2>&1 & sleep 2; echo -e "\e[1;32ms5 restarted\e[0m"; }
     CURL_OUTPUT=$(curl -s 4.ipw.cn --socks5 $SOCKS5_USER:$SOCKS5_PASS@localhost:$SOCKS5_PORT)
     if [[ $CURL_OUTPUT =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
       echo "代理创建成功，返回的IP是: $CURL_OUTPUT"
@@ -297,15 +309,15 @@ fi
       found_folders=$(find "/home/${USER}/domains" -type d -name "*${USER,,}*")
       if [ -n "$found_folders" ]; then
           if echo "$found_folders" | grep -q "useruno.com"; then
-              echo "找到包含 'useruno.com' 的文件夹。"
+              #echo "找到包含 'useruno.com' 的文件夹。"
               SERV_DOMAIN="${USER,,}.useruno.com"
           elif echo "$found_folders" | grep -q "ct8.pl"; then
-              echo "未找到包含 'ct8.pl' 的文件夹。"
+              #echo "未找到包含 'ct8.pl' 的文件夹。"
               SERV_DOMAIN="${USER,,}.ct8.pl"
           fi
       fi
 
-      echo -e "代理创建成功"
+      echo "socks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}"
     else
       echo "代理创建失败，请检查自己输入的内容。"
     fi
@@ -313,19 +325,22 @@ fi
 }
 
 ########################梦开始的地方###########################
-# 自动安装 socks5
-echo "正在检查 socks5 安装目录..."
-
-# 检查socks5目录是否存在
-if [ -d "$FILE_ROAD" ]; then
-  install_socks5
+socks5choice=y
+socks5choice=${socks5choice^^} # 转换为大写
+if [ "$socks5choice" == "Y" ]; then
+  # 检查socks5目录是否存在
+  if [ -d "$FILE_PATH" ]; then
+    install_socks5
+  else
+    # 创建socks5目录
+    echo "正在创建 socks5 目录..."
+    mkdir -p "$FILE_PATH"
+    install_socks5
+  fi
 else
-  # 创建socks5目录
-  echo "正在创建 socks5 目录..."
-  mkdir -p "$FILE_ROAD" || { echo "目录创建失败，权限不足或路径错误。"; exit 1; }
-  install_socks5
+  echo "不安装 socks5"
 fi
 
-echo "#socks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}" >> ${FILE_PATH}/${SUB_TOKEN}_hy2.log
+echo "socks://${SOCKS5_USER}:${SOCKS5_PASS}@${SERV_DOMAIN}:${SOCKS5_PORT}" >> ${FILE_PATH}/${SUB_TOKEN}_hy2.log
 
 echo -e "\e[31m$(cat ${FILE_PATH}/${SUB_TOKEN}_hy2.log)\e[0m\n"
